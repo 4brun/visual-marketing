@@ -1,0 +1,19 @@
+{
+  "name": "visual-marketing-saas",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "db:migrate": "pnpm --filter api prisma migrate dev",
+    "db:seed": "pnpm --filter api prisma db seed"
+  },
+  "devDependencies": {
+    "@oxc-minify/binding-win32-x64-msvc": "^0.132.0",
+    "@oxc-parser/binding-win32-x64-msvc": "^0.132.0",
+    "@oxc-transform/binding-win32-x64-msvc": "^0.132.0",
+    "turbo": "^2.1",
+    "typescript": "^5.5"
+  },
+  "packageManager": "pnpm@9.9.0"
+}
