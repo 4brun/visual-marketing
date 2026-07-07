@@ -45,12 +45,14 @@
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
           >
-            <p v-if="error" class="text-sm text-red-400 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-              </svg>
-              {{ error }}
-            </p>
+            <div v-if="error" class="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
+              <div class="flex items-start gap-3">
+                <svg class="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p class="text-sm text-red-300">{{ error }}</p>
+              </div>
+            </div>
           </Transition>
 
           <button
@@ -86,6 +88,15 @@ const form = reactive({ email: '', password: '' });
 const error = ref('');
 const loading = ref(false);
 
+function resolveError(e) {
+  const status = e.response?.status;
+  const serverMsg = e.response?.data?.message;
+  if (status === 401) return serverMsg || 'Неверный email или пароль';
+  if (status === 429) return 'Слишком много попыток. Подождите минуту.';
+  if (!e.response) return 'Сервер недоступен. Проверьте соединение.';
+  return serverMsg || 'Ошибка входа. Попробуйте ещё раз.';
+}
+
 async function handleLogin() {
   loading.value = true;
   error.value = '';
@@ -94,7 +105,7 @@ async function handleLogin() {
     authStore.login(data.user, data.token, data.refreshToken);
     router.push('/editor');
   } catch (e) {
-    error.value = e.response?.data?.message || 'Ошибка входа';
+    error.value = resolveError(e);
   } finally {
     loading.value = false;
   }
