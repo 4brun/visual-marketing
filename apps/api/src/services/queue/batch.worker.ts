@@ -1,13 +1,15 @@
 import { Queue, Worker, Job } from 'bullmq';
-import { getRedisClient } from './redis';
-import { removeBgQueue } from './removeBg.worker';
-import { generateSceneQueue } from './generateScene.worker';
-import { logger } from '../../utils/logger';
+import { getRedisConnection } from './redis.js';
+import { removeBgQueue, removeBgQueueEvents } from './removeBg.worker.js';
+import { generateSceneQueue, generateSceneQueueEvents } from './generateScene.worker.js';
+import { logger } from '../../utils/logger.js';
+import { PrismaClient } from '@prisma/client';
 
 const QUEUE_NAME = 'batch';
+const prisma = new PrismaClient();
 
 export const batchQueue = new Queue(QUEUE_NAME, {
-  connection: getRedisClient(),
+  connection: getRedisConnection(),
   defaultJobOptions: {
     attempts: 1,
   },
@@ -35,13 +37,18 @@ export function createBatchWorker() {
 
       const results = await Promise.allSettled(
         images.map(async (img) => {
+          await prisma.image.update({
+            where: { id: img.imageId },
+            data: { status: 'PROCESSING' },
+          });
+
           const bgJob = await removeBgQueue.add('remove-bg', {
             imageId: img.imageId,
             userId,
             originalKey: img.originalKey,
           });
 
-          await bgJob.waitUntilFinished(removeBgQueue.events);
+          await bgJob.waitUntilFinished(removeBgQueueEvents);
 
           const sceneJob = await generateSceneQueue.add('generate-scene', {
             imageId: img.imageId,
@@ -52,7 +59,7 @@ export function createBatchWorker() {
             style,
           });
 
-          return sceneJob.waitUntilFinished(generateSceneQueue.events);
+          return sceneJob.waitUntilFinished(generateSceneQueueEvents);
         }),
       );
 
@@ -64,7 +71,7 @@ export function createBatchWorker() {
       return { succeeded, failed, total: images.length };
     },
     {
-      connection: getRedisClient(),
+      connection: getRedisConnection(),
       concurrency: 1,
     },
   );
@@ -78,4 +85,9 @@ export function createBatchWorker() {
   });
 
   return worker;
+}
+
+if (process.argv[1] && !process.argv[1].includes('vitest')) {
+  createBatchWorker();
+  logger.info('Batch worker started');
 }

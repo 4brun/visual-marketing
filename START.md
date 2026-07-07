@@ -1,46 +1,60 @@
 # Quick Start — Visual Marketing SaaS
 
+Пошаговая инструкция по запуску проекта.
+
 ## Предварительные требования
 
 - **Node.js** >= 20
 - **pnpm** >= 9.9
-- **Docker Desktop** + **WSL2** (для PostgreSQL, Redis, MinIO)
+- **Docker Desktop** + **WSL2**
 
 ### Установка WSL2 (если не установлен)
 
 ```powershell
 wsl --install
 ```
-После установки **перезагрузите компьютер**, затем снова запустите `wsl --install` для установки дистрибутива Linux.
+После установки **перезагрузите компьютер**, затем снова `wsl --install`.
 
-## Запуск проекта
-
-### 1. Запуск инфраструктуры (Docker)
-
-```bash
-cd infra/docker
-docker compose up -d
-```
-
-Запускает:
-- PostgreSQL 16 (порт 5432)
-- Redis 7 (порт 6379)
-- MinIO (порт 9000 API, 9001 консоль)
-
-### 2. Установка зависимостей
+## Шаг 1 — Установка зависимостей
 
 ```bash
 pnpm install
 ```
 
-### 3. Миграция базы данных
+## Шаг 2 — Настройка окружения
+
+```bash
+cp .env.example apps/api/.env
+```
+
+Отредактируйте `apps/api/.env` — минимально задайте:
+```
+REPLICATE_API_TOKEN=r8_ваш_токен
+```
+
+Остальные переменные уже настроены для локальной разработки.
+
+## Шаг 3 — Запуск инфраструктуры
+
+```bash
+cd infra/docker
+docker compose up -d postgres redis minio
+```
+
+Проверьте что контейнеры запущены:
+```bash
+docker compose ps
+```
+
+## Шаг 4 — Миграция базы данных
 
 ```bash
 pnpm db:migrate
 ```
 
-### 4. Запуск dev-серверов
+## Шаг 5 — Запуск dev-серверов
 
+В отдельном терминале:
 ```bash
 pnpm dev
 ```
@@ -49,47 +63,44 @@ pnpm dev
 - Frontend: http://localhost:3000 (Nuxt 3)
 - API: http://localhost:3001 (Fastify)
 
-## Окружение
+## Шаг 6 — Workers (опционально)
 
-Файл `.env` в `apps/api/` уже настроен для локальной разработки:
-- S3: MinIO (localhost:9000, логин: minioadmin)
-- DB: postgres:postgres@localhost:5432/visual_marketing
-- Redis: localhost:6379
+Для обработки изображений через AI запустите workers в отдельных терминалах:
+
+```bash
+pnpm --filter api worker:bg      # Удаление фона
+pnpm --filter api worker:scene   # Генерация сцены
+pnpm --filter api worker:batch   # Пакетная обработка
+```
+
+## Альтернатива: полный запуск через Docker
+
+Если не хотите запускать Node.js локально:
+
+```bash
+cd infra/docker
+docker compose up -d --build
+```
+
+Запустит всё: API, workers, фронтенд, PostgreSQL, Redis, MinIO.
+
+## Тестирование API
+
+```bash
+# Регистрация
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"123456"}'
+
+# Здоровье сервера
+curl http://localhost:3001/api/health
+```
 
 ## Полезные команды
 
 ```bash
-# Prisma
-pnpm db:migrate          # Миграции
-pnpm db:seed             # Заполнение БД тестовыми данными
-pnpm --filter api prisma:generate  # Генерация Prisma Client
-
-# Workers (BullMQ)
-pnpm --filter api worker:bg      # Worker удаления фона
-pnpm --filter api worker:scene   # Worker генерации сцен
-pnpm --filter api worker:batch   # Worker пакетной обработки
-
-# Docker
-cd infra/docker && docker compose logs -f    # Логи
-cd infra/docker && docker compose down       # Остановка
+pnpm db:migrate                  # Миграции БД
+pnpm db:seed                     # Тестовые данные
+pnpm --filter api exec tsc --noEmit  # Проверка типов
+pnpm --filter api run build          # Сборка API
 ```
-
-## Решение проблем
-
-### "Docker Desktop is unable to start"
-WSL2 не установлен. Выполните:
-```powershell
-wsl --install
-# Перезагрузите компьютер
-wsl --install
-```
-
-### "Cannot find native binding" (oxc-parser / oxc-transform)
-Переустановите зависимости:
-```bash
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
-```
-
-### Port 3000 занят
-Nuxt автоматически использует следующий свободный порт (3001). API-сервер запустится на 3002.

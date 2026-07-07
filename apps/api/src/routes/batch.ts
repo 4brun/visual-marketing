@@ -1,17 +1,22 @@
-import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { batchQueue } from '../services/queue/batch.worker';
-import { RESIZE_PRESETS } from '@visual-marketing/shared';
-import { BadRequestError, NotFoundError } from '../utils/errors';
+import { batchQueue } from '../services/queue/batch.worker.js';
+import { BadRequestError, NotFoundError } from '../utils/errors.js';
+import { uploadOriginal } from '../services/storage/s3.service.js';
+import { getImageMetadata } from '../services/storage/imageProcessor.js';
 
-const prisma = new PrismaClient();
+const RESIZE_PRESETS: Record<string, { width: number; height: number; label: string }> = {
+  WILDBERRIES_3_4: { width: 900, height: 1200, label: 'Wildberries 3:4' },
+  OZON_1_1: { width: 900, height: 900, label: 'Ozon 1:1' },
+  YANDEX_1_1: { width: 900, height: 900, label: 'Яндекс Маркет 1:1' },
+  OZON_3_4: { width: 900, height: 1200, label: 'Ozon 3:4' },
+  ORIGINAL: { width: 0, height: 0, label: 'Оригинал' },
+};
 
 export async function registerBatchRoutes(app: FastifyInstance) {
   app.post('/api/batch/upload', {
     preHandler: [app.authenticate],
-  }, async (request) => {
-    const user = (request as any).user;
+  }, async (request, reply) => {
     const projectId = (request.body as any)?.projectId;
     if (!projectId) throw new BadRequestError('projectId обязателен');
 
@@ -24,14 +29,11 @@ export async function registerBatchRoutes(app: FastifyInstance) {
         chunks.push(chunk);
       }
 
-      const { uploadOriginal } = await import('../services/storage/s3.service');
-      const { getImageMetadata } = await import('../services/storage/imageProcessor');
-
       const buffer = Buffer.concat(chunks);
       const metadata = await getImageMetadata(buffer);
-      const { key } = await uploadOriginal(user.sub, file.filename, buffer, file.mimetype);
+      const { key } = await uploadOriginal(request.user.sub, file.filename, buffer, file.mimetype);
 
-      const image = await prisma.image.create({
+      const image = await app.prisma.image.create({
         data: {
           projectId,
           originalUrl: key,
@@ -43,13 +45,12 @@ export async function registerBatchRoutes(app: FastifyInstance) {
       imageIds.push(image.id);
     }
 
-    return { imageIds, count: imageIds.length };
+    return reply.status(201).send({ imageIds, count: imageIds.length });
   });
 
   app.post('/api/batch/process', {
     preHandler: [app.authenticate],
   }, async (request) => {
-    const user = (request as any).user;
     const body = z.object({
       projectId: z.string(),
       prompt: z.string().min(1),
@@ -57,12 +58,12 @@ export async function registerBatchRoutes(app: FastifyInstance) {
       preset: z.string().optional().default('WILDBERRIES_3_4'),
     }).parse(request.body);
 
-    const project = await prisma.project.findUnique({
+    const project = await app.prisma.project.findUnique({
       where: { id: body.projectId },
       include: { images: true },
     });
     if (!project) throw new NotFoundError('Проект');
-    if (project.userId !== user.sub) throw new BadRequestError('Нет доступа к проекту');
+    if (project.userId !== request.user.sub) throw new BadRequestError('Нет доступа к проекту');
 
     const preset = RESIZE_PRESETS[body.preset];
     if (!preset) throw new BadRequestError('Неизвестный пресет');
@@ -76,7 +77,7 @@ export async function registerBatchRoutes(app: FastifyInstance) {
 
     await batchQueue.add('batch-process', {
       batchId,
-      userId: user.sub,
+      userId: request.user.sub,
       images,
       prompt: body.prompt,
       style: body.style,

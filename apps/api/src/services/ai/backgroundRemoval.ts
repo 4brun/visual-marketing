@@ -1,5 +1,5 @@
-import { runReplicateModel } from './replicate.client';
-import { logger } from '../../utils/logger';
+import { runReplicateModel } from './replicate.client.js';
+import { logger } from '../../utils/logger.js';
 
 const RMBG_MODEL = 'briaai/RMBG-1.4';
 

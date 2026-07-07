@@ -12,6 +12,18 @@
     "lint": {},
     "prisma:generate": {
       "cache": false
+    },
+    "worker:bg": {
+      "cache": false,
+      "persistent": true
+    },
+    "worker:scene": {
+      "cache": false,
+      "persistent": true
+    },
+    "worker:batch": {
+      "cache": false,
+      "persistent": true
     }
   }
 }

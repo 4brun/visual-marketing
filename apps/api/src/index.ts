@@ -3,13 +3,15 @@ import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
-import { getEnv } from './config';
-import { logger } from './utils/logger';
-import { registerAuthRoutes } from './routes/auth';
-import { registerImageRoutes } from './routes/images';
-import { registerProjectRoutes } from './routes/projects';
-import { registerEditorRoutes } from './routes/editor';
-import { registerBatchRoutes } from './routes/batch';
+import { getEnv } from './config/index.js';
+import { logger } from './utils/logger.js';
+import prismaPlugin from './plugins/prisma.js';
+import { registerAuthRoutes } from './routes/auth.js';
+import { registerImageRoutes } from './routes/images.js';
+import { registerProjectRoutes } from './routes/projects.js';
+import { registerEditorRoutes } from './routes/editor.js';
+import { registerBatchRoutes } from './routes/batch.js';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 
 const env = getEnv();
 
@@ -23,16 +25,17 @@ const app = Fastify({
   },
 });
 
+await app.register(prismaPlugin);
 await app.register(cors, { origin: env.APP_URL });
 await app.register(jwt, {
   secret: env.JWT_SECRET,
   sign: { expiresIn: env.JWT_EXPIRES_IN },
 });
 
-app.decorate('authenticate', async (request: any, reply: any) => {
+app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     await request.jwtVerify();
-  } catch (err) {
+  } catch {
     reply.status(401).send({ error: true, message: 'Unauthorized', code: 'UNAUTHORIZED' });
   }
 });

@@ -1,19 +1,15 @@
-import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { uploadOriginal, getPresignedUrl } from '../services/storage/s3.service';
-import { getImageMetadata } from '../services/storage/imageProcessor';
-import { removeBgQueue } from '../services/queue/removeBg.worker';
-import { generateSceneQueue } from '../services/queue/generateScene.worker';
-import { NotFoundError, BadRequestError } from '../utils/errors';
-
-const prisma = new PrismaClient();
+import { uploadOriginal, getPresignedUrl } from '../services/storage/s3.service.js';
+import { getImageMetadata } from '../services/storage/imageProcessor.js';
+import { removeBgQueue } from '../services/queue/removeBg.worker.js';
+import { generateSceneQueue } from '../services/queue/generateScene.worker.js';
+import { NotFoundError, BadRequestError } from '../utils/errors.js';
 
 export async function registerImageRoutes(app: FastifyInstance) {
   app.post('/api/images/upload', {
     preHandler: [app.authenticate],
-  }, async (request) => {
-    const user = (request as any).user;
+  }, async (request, reply) => {
     const file = await request.file();
     if (!file) throw new BadRequestError('Файл не загружен');
 
@@ -24,17 +20,17 @@ export async function registerImageRoutes(app: FastifyInstance) {
     const buffer = Buffer.concat(chunks);
     const metadata = await getImageMetadata(buffer);
 
+    const projectId = (request.body as any)?.projectId;
+    if (!projectId) throw new BadRequestError('projectId обязателен');
+
     const { key } = await uploadOriginal(
-      user.sub,
+      request.user.sub,
       file.filename,
       buffer,
       file.mimetype,
     );
 
-    const projectId = (request.body as any)?.projectId;
-    if (!projectId) throw new BadRequestError('projectId обязателен');
-
-    const image = await prisma.image.create({
+    const image = await app.prisma.image.create({
       data: {
         projectId,
         originalUrl: key,
@@ -43,30 +39,29 @@ export async function registerImageRoutes(app: FastifyInstance) {
       },
     });
 
-    return { imageId: image.id, width: metadata.width, height: metadata.height };
+    return reply.status(201).send({ imageId: image.id, width: metadata.width, height: metadata.height });
   });
 
   app.post('/api/images/:id/remove-bg', {
     preHandler: [app.authenticate],
   }, async (request) => {
     const { id } = request.params as { id: string };
-    const user = (request as any).user;
 
-    const image = await prisma.image.findUnique({ where: { id } });
+    const image = await app.prisma.image.findUnique({ where: { id } });
     if (!image) throw new NotFoundError('Изображение');
 
-    await prisma.image.update({
+    await app.prisma.image.update({
       where: { id },
       data: { status: 'PROCESSING' },
     });
 
     const job = await removeBgQueue.add('remove-bg', {
       imageId: id,
-      userId: user.sub,
+      userId: request.user.sub,
       originalKey: image.originalUrl,
     });
 
-    await prisma.image.update({
+    await app.prisma.image.update({
       where: { id },
       data: { removeBgJobId: job.id },
     });
@@ -78,7 +73,6 @@ export async function registerImageRoutes(app: FastifyInstance) {
     preHandler: [app.authenticate],
   }, async (request) => {
     const { id } = request.params as { id: string };
-    const user = (request as any).user;
     const body = z.object({
       prompt: z.string().min(1),
       width: z.number().optional().default(900),
@@ -86,19 +80,19 @@ export async function registerImageRoutes(app: FastifyInstance) {
       style: z.string().optional(),
     }).parse(request.body);
 
-    const image = await prisma.image.findUnique({ where: { id } });
+    const image = await app.prisma.image.findUnique({ where: { id } });
     if (!image) throw new NotFoundError('Изображение');
 
     const job = await generateSceneQueue.add('generate-scene', {
       imageId: id,
-      userId: user.sub,
+      userId: request.user.sub,
       prompt: body.prompt,
       width: body.width,
       height: body.height,
       style: body.style,
     });
 
-    await prisma.image.update({
+    await app.prisma.image.update({
       where: { id },
       data: { generateJobId: job.id, prompt: body.prompt },
     });
@@ -111,7 +105,7 @@ export async function registerImageRoutes(app: FastifyInstance) {
   }, async (request) => {
     const { id } = request.params as { id: string };
 
-    const image = await prisma.image.findUnique({ where: { id } });
+    const image = await app.prisma.image.findUnique({ where: { id } });
     if (!image) throw new NotFoundError('Изображение');
 
     return {
@@ -128,7 +122,7 @@ export async function registerImageRoutes(app: FastifyInstance) {
   }, async (request) => {
     const { id } = request.params as { id: string };
 
-    const image = await prisma.image.findUnique({ where: { id } });
+    const image = await app.prisma.image.findUnique({ where: { id } });
     if (!image) throw new NotFoundError('Изображение');
 
     const urls: Record<string, string> = {};

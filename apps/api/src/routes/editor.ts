@@ -1,26 +1,22 @@
-import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { uploadProcessed, getPresignedUrl } from '../services/storage/s3.service';
-import { NotFoundError } from '../utils/errors';
-
-const prisma = new PrismaClient();
+import { uploadProcessed, getPresignedUrl } from '../services/storage/s3.service.js';
+import { NotFoundError } from '../utils/errors.js';
 
 export async function registerEditorRoutes(app: FastifyInstance) {
   app.post('/api/editor/save', {
     preHandler: [app.authenticate],
-  }, async (request) => {
-    const user = (request as any).user;
+  }, async (request, reply) => {
     const body = z.object({
       projectId: z.string(),
       imageId: z.string().optional(),
-      data: z.record(z.unknown()),
+      data: z.record(z.string()),
       width: z.number(),
       height: z.number(),
       format: z.string().optional().default('png'),
     }).parse(request.body);
 
-    const canvas = await prisma.canvasState.create({
+    const canvas = await app.prisma.canvasState.create({
       data: {
         projectId: body.projectId,
         imageId: body.imageId,
@@ -31,7 +27,7 @@ export async function registerEditorRoutes(app: FastifyInstance) {
       },
     });
 
-    return { canvasId: canvas.id };
+    return reply.status(201).send({ canvasId: canvas.id });
   });
 
   app.get('/api/editor/load/:imageId', {
@@ -39,7 +35,7 @@ export async function registerEditorRoutes(app: FastifyInstance) {
   }, async (request) => {
     const { imageId } = request.params as { imageId: string };
 
-    const canvas = await prisma.canvasState.findFirst({
+    const canvas = await app.prisma.canvasState.findFirst({
       where: { imageId },
       orderBy: { createdAt: 'desc' },
     });
@@ -52,26 +48,25 @@ export async function registerEditorRoutes(app: FastifyInstance) {
   app.post('/api/editor/export', {
     preHandler: [app.authenticate],
   }, async (request) => {
-    const user = (request as any).user;
     const body = z.object({
       projectId: z.string(),
       imageId: z.string(),
-      dataUrl: z.string(), // base64 data URL from canvas.toDataURL()
+      dataUrl: z.string(),
       width: z.number(),
       height: z.number(),
     }).parse(request.body);
 
-    const base64Data = body.dataUrl.replace(/^data:image\/png;base64,/, '');
+    const base64Data = body.dataUrl.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
 
     const { key } = await uploadProcessed(
-      user.sub,
+      request.user.sub,
       'results',
       body.imageId,
       buffer,
     );
 
-    await prisma.image.update({
+    await app.prisma.image.update({
       where: { id: body.imageId },
       data: { resultUrl: key, status: 'COMPLETED' },
     });

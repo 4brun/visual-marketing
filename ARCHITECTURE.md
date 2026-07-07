@@ -1,4 +1,4 @@
-# Visual Marketing SaaS — Architecture & Implementation Plan
+# Visual Marketing SaaS — Architecture
 
 AI-powered cloud service for Russian marketplace sellers (Wildberries, Ozon, Yandex Market).
 
@@ -7,47 +7,72 @@ AI-powered cloud service for Russian marketplace sellers (Wildberries, Ozon, Yan
 ## 1. Monorepo Folder Structure
 
 ```
-visual-marketing-saas/
+visual-marketing/
 ├── apps/
 │   ├── web/                          # Nuxt 3 frontend
 │   │   ├── nuxt.config.ts
 │   │   ├── package.json
-│   │   ├── pages/
-│   │   │   ├── index.vue             # Landing page
-│   │   │   ├── auth/
-│   │   │   │   ├── login.vue
-│   │   │   │   └── register.vue
-│   │   │   ├── dashboard/
-│   │   │   │   ├── index.vue         # Generation history
-│   │   │   │   └── billing.vue       # Payments (Phase 2)
-│   │   │   └── editor/
-│   │   │       └── index.vue         # Main canvas editor
-│   │   ├── components/
-│   │   │   ├── editor/
-│   │   │   │   ├── CanvasZone.vue        # Fabric.js canvas wrapper
-│   │   │   │   ├── BackgroundPicker.vue  # AI background selector
-│   │   │   │   ├── ObjectLayer.vue       # Cutout object drag/drop
-│   │   │   │   ├── TextOverlay.vue       # Text infographic tool
-│   │   │   │   ├── ResizePanel.vue       # WB 3:4 / Ozon 1:1 presets
-│   │   │   │   └── ExportPanel.vue       # Download/upload to marketplace
-│   │   │   ├── batch/
-│   │   │   │   ├── BatchUpload.vue       # Multi-file upload
-│   │   │   │   └── BatchPreview.vue      # Style preview grid
-│   │   │   ├── ui/
-│   │   │   │   ├── AppHeader.vue
-│   │   │   │   ├── AppSidebar.vue
-│   │   │   │   └── AppFooter.vue
-│   │   │   └── InfographicTemplates.vue
-│   │   ├── composables/
-│   │   │   ├── useCanvas.ts          # Fabric.js canvas logic
-│   │   │   ├── useAuth.ts            # JWT auth state
-│   │   │   └── useApi.ts             # Axios/fetch wrapper
-│   │   ├── stores/
-│   │   │   ├── auth.ts               # Pinia auth store
-│   │   │   └── editor.ts             # Pinia editor state
-│   │   ├── assets/
-│   │   │   ├── css/
-│   │   │   │   └── main.css
+│   │   ├── app.vue
+│   │   └── tailwind.config.ts
+│   │
+│   └── api/                          # Fastify backend (TypeScript)
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── src/
+│       │   ├── index.ts              # Server entry point
+│       │   ├── config/index.ts       # Env config (Zod validation)
+│       │   ├── types/fastify.d.ts    # Fastify type augmentation
+│       │   ├── plugins/
+│       │   │   └── prisma.ts         # Prisma Client singleton plugin
+│       │   ├── routes/
+│       │   │   ├── auth.ts           # Register, login, profile
+│       │   │   ├── projects.ts       # CRUD projects
+│       │   │   ├── images.ts         # Upload, remove-bg, generate-scene
+│       │   │   ├── editor.ts         # Canvas save/load/export
+│       │   │   └── batch.ts          # Batch upload and processing
+│       │   ├── services/
+│       │   │   ├── auth.service.ts   # Password hashing, register/login
+│       │   │   ├── ai/
+│       │   │   │   ├── replicate.client.ts   # Replicate API client
+│       │   │   │   ├── backgroundRemoval.ts  # RMBG 1.4
+│       │   │   │   ├── sceneGeneration.ts    # Flux 1.1 Pro
+│       │   │   │   └── promptBuilder.ts      # Russian prompt construction
+│       │   │   ├── storage/
+│       │   │   │   ├── s3.service.ts         # S3/MinIO operations
+│       │   │   │   └── imageProcessor.ts     # Sharp resize/composite
+│       │   │   └── queue/
+│       │   │       ├── redis.ts              # Redis connection (IPv4 fix)
+│       │   │       ├── removeBg.worker.ts    # Background removal worker
+│       │   │       ├── generateScene.worker.ts # Scene generation worker
+│       │   │       └── batch.worker.ts       # Batch processing worker
+│       │   └── utils/
+│       │       ├── errors.ts         # AppError hierarchy
+│       │       └── logger.ts         # Pino logger
+│       └── prisma/
+│           ├── schema.prisma
+│           └── seed.ts
+│
+├── packages/
+│   └── shared/                       # Shared types & constants
+│       ├── package.json
+│       └── src/
+│           ├── types/index.ts        # User, Project, Image, CanvasState types
+│           └── constants/index.ts    # RESIZE_PRESETS, SCENE_STYLES, PLANS
+│
+├── infra/
+│   └── docker/
+│       ├── docker-compose.yml        # Full stack orchestration
+│       ├── Dockerfile.api            # Multi-stage API build
+│       └── Dockerfile.web            # Multi-stage Nuxt build
+│
+├── .env.example
+├── .dockerignore
+├── package.json                      # Root workspace (pnpm + Turborepo)
+├── pnpm-workspace.yaml
+├── turbo.json
+├── tsconfig.base.json
+└── README.md
+```
 │   │   │   └── templates/            # Infographic SVG templates
 │   │   │       ├── promo-ru.svg
 │   │   │       ├── new-badge.svg
@@ -125,14 +150,10 @@ visual-marketing-saas/
 │           └── components/
 │
 ├── infra/
-│   ├── docker/
-│   │   ├── docker-compose.yml        # Dev: postgres, redis, minio
-│   │   ├── Dockerfile.api
-│   │   └── Dockerfile.web
-│   └── deploy/
-│       ├── traefik.yml               # Reverse proxy config
-│       └── scripts/
-│           └── deploy.sh
+│   └── docker/
+│       ├── docker-compose.yml        # Full stack: postgres, redis, minio, api, workers, web
+│       ├── Dockerfile.api            # Multi-stage: deps → builder → runner
+│       └── Dockerfile.web            # Multi-stage: deps → builder → runner
 │
 ├── .env.example
 ├── .gitignore
@@ -370,11 +391,11 @@ export const RESIZE_PRESETS = {
 | Library | Version | Purpose |
 |---------|---------|---------|
 | fastify | ^4.28 | HTTP server |
+| fastify-plugin | ^4.5 | Plugin encapsulation |
 | @fastify/jwt | ^8 | JWT auth |
 | @fastify/cors | ^9 | CORS |
 | @fastify/rate-limit | ^9 | Rate limiting |
 | @fastify/multipart | ^8 | File upload |
-| @fastify/static | ^6 | Static file serving |
 | prisma | ^5.19 | ORM |
 | @prisma/client | ^5.19 | Prisma client |
 | bullmq | ^5.12 | Job queue |
@@ -408,23 +429,23 @@ export const RESIZE_PRESETS = {
 
 ## 5. Step-by-Step Implementation Order
 
-### Week 1: Foundation
+### Week 1: Foundation ✅
 1. **Scaffold monorepo** — `pnpm-workspace.yaml`, `turbo.json`, root `package.json`
-2. **Docker setup** — `docker-compose.yml` with PostgreSQL, Redis, MinIO
+2. **Docker setup** — `docker-compose.yml` with PostgreSQL, Redis, MinIO + Dockerfiles for API and web
 3. **Prisma schema + migrations** — Run `prisma migrate dev`
-4. **Fastify server skeleton** — `apps/api/src/index.ts` with plugins (cors, jwt, prisma, rateLimit)
-5. **Auth routes** — Register, login, JWT middleware
+4. **Fastify server skeleton** — `apps/api/src/index.ts` with plugins (cors, jwt, prisma plugin, rateLimit, multipart)
+5. **Auth routes** — Register, login, JWT middleware with proper type augmentation
 6. **Shared types** — `packages/shared/src/types/`
 
-### Week 2: AI Pipeline
+### Week 2: AI Pipeline ✅
 7. **S3 service** — Upload, download, presigned URLs via `@aws-sdk/client-s3`
-8. **Replicate client** — `apps/api/src/services/ai/replicate.client.ts` (polling wrapper)
+8. **Replicate client** — `apps/api/src/services/ai/replicate.client.ts` (with timeout protection)
 9. **Background removal service** — `removeBg.ts` calling `briaai/RMBG-1.4`
 10. **Scene generation service** — `generateScene.ts` calling Flux 1.1 Pro
-11. **BullMQ workers** — `removeBg.worker.ts`, `generateScene.worker.ts`
+11. **BullMQ workers** — `removeBg.worker.ts`, `generateScene.worker.ts`, `batch.worker.ts` (all with auto-start, status tracking, error handling)
 12. **Image upload + processing routes** — Upload → S3 → queue jobs → poll status
 
-### Week 3: Canvas Editor
+### Week 3: Canvas Editor (Phase 2)
 13. **Nuxt 3 project setup** — `apps/web/` with Tailwind, Pinia, layouts
 14. **CanvasZone.vue** — Fabric.js v6 canvas initialization
 15. **ObjectLayer.vue** — Load cutout PNG as Fabric.Image, drag/resize
@@ -432,7 +453,7 @@ export const RESIZE_PRESETS = {
 17. **ResizePanel.vue** — Apply WB/Ozon presets to canvas dimensions
 18. **ExportPanel.vue** — `canvas.toDataURL()` → upload to S3 → download
 
-### Week 4: Infographics + Batch + Polish
+### Week 4: Infographics + Batch + Polish (Phase 2)
 19. **TextOverlay.vue** — Fabric.js text objects with styling
 20. **InfographicTemplates.vue** — Load SVG templates from `assets/templates/`
 21. **BatchUpload.vue** — Multi-file upload component
@@ -440,7 +461,7 @@ export const RESIZE_PRESETS = {
 23. **Batch worker** — Process queue for multiple images with shared prompt
 24. **UI polish** — AppHeader, AppSidebar, responsive layout
 
-### Week 5: Landing + Integration
+### Week 5: Landing + Integration (Phase 2)
 25. **Landing page** — `pages/index.vue` with hero, features, pricing
 26. **Dashboard** — Generation history list
 27. **End-to-end testing** — Upload → remove bg → generate scene → edit → export
@@ -591,8 +612,12 @@ ROBOKASSA_SECRET_KEY_2=
 
 1. **Fabric.js v6 for canvas** — Best open-source canvas library; supports image layers, text, SVG import, JSON serialization for save/load.
 2. **BullMQ over Bull** — Better TypeScript support, Redis Streams, reliable delayed jobs.
-3. **Separate worker processes** — `removeBg.worker.ts` and `generateScene.worker.ts` run as separate Node processes for independent scaling.
+3. **Separate worker processes** — `removeBg.worker.ts`, `generateScene.worker.ts`, `batch.worker.ts` run as separate Node processes for independent scaling. Each auto-starts when run directly.
 4. **S3 presigned URLs** — Frontend never touches files directly; all uploads/downloads via presigned URLs for security.
-5. **Russian-only MVP** — No i18n overhead; all UI text hardcoded in Russian.
-6. **Prodamus preferred over Robokassa** — Better docs, modern dashboard, lower fees for small volumes.
-7. **Fal.ai as fallback** — If Replicate is slow/overloaded, switch scene generation to Fal.ai with same prompt format.
+5. **Prisma singleton via Fastify plugin** — Single `PrismaClient` instance shared across all routes via `app.prisma`, with proper lifecycle management (connect/disconnect).
+6. **Fastify type augmentation** — `src/types/fastify.d.ts` provides type-safe `app.prisma`, `app.authenticate`, and `request.user` across all routes.
+7. **Redis IPv4 fix** — On Windows, `localhost` resolves to `::1` (IPv6) but Redis listens on IPv4 only. Connection forces `family: 4` when connecting to localhost.
+8. **Russian-only MVP** — No i18n overhead; all UI text hardcoded in Russian.
+9. **Docker multi-stage builds** — Separate `deps`, `builder`, `runner` stages for minimal production images.
+10. **Prodamus preferred over Robokassa** — Better docs, modern dashboard, lower fees for small volumes.
+11. **Fal.ai as fallback** — If Replicate is slow/overloaded, switch scene generation to Fal.ai with same prompt format.

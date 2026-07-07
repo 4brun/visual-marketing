@@ -53,6 +53,9 @@ importers:
       fastify:
         specifier: ^4.28
         version: 4.29.1
+      fastify-plugin:
+        specifier: ^4.5
+        version: 4.5.1
       ioredis:
         specifier: ^5.4
         version: 5.11.1
@@ -1221,7 +1224,6 @@ packages:
   '@oxc-minify/binding-win32-x64-msvc@0.132.0':
     resolution: {integrity: sha512-a69yKrBl2p9O8cdAHbHih56eKhcpKJRVkRu/S+CwCdR2Zsh4nnqYIllF96Lxg3jDjRQNL3t0xZNdYBDG5Vgq+w==}
     engines: {node: ^20.19.0 || >=22.12.0}
-    cpu: [x64]
     os: [win32]
 
   '@oxc-parser/binding-android-arm-eabi@0.132.0':
@@ -1340,7 +1342,6 @@ packages:
   '@oxc-parser/binding-win32-x64-msvc@0.132.0':
     resolution: {integrity: sha512-2dapgHpA5X8DSXF4AU36hJWYf6zP0tKjMXFRAZFBD62pkevW/uhFDXoFH9Y/3Fd2EtDrw5ByNnR1wVE9X9y0SQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
-    cpu: [x64]
     os: [win32]
 
   '@oxc-project/types@0.132.0':
@@ -1349,7 +1350,6 @@ packages:
   '@oxc-transform/binding-win32-x64-msvc@0.132.0':
     resolution: {integrity: sha512-P7A4Cz/0C0Oxa2zH/oCruzA/5EHr5RRz0x6KXYz3wwhS+dFqIBxP9yo8FKjXhKXHRKa+M+QHo+bqYiqqlVsEQg==}
     engines: {node: ^20.19.0 || >=22.12.0}
-    cpu: [x64]
     os: [win32]
 
   '@parcel/watcher-android-arm64@2.5.6':
@@ -6207,7 +6207,7 @@ snapshots:
       '@nuxt/kit': 3.21.8(magicast@0.3.5)
       '@nuxt/schema': 3.21.8
       execa: 7.2.0
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
     transitivePeerDependencies:
       - magicast
 
@@ -6259,7 +6259,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.17
       unimport: 3.14.6(rollup@4.62.0)
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
       vite-plugin-inspect: 0.8.9(@nuxt/kit@3.21.8(magicast@0.3.5))(rollup@4.62.0)(vite@6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
       vite-plugin-vue-inspector: 5.4.0(vite@6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
       which: 3.0.1
@@ -6402,7 +6402,7 @@ snapshots:
       ufo: 1.6.4
       unenv: 1.10.0
       unplugin: 2.3.11
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
       vite-node: 3.2.4(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
       vite-plugin-checker: 0.8.0(typescript@5.9.3)(vite@6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
       vue: 3.5.38(typescript@5.9.3)
@@ -6944,14 +6944,14 @@ snapshots:
       '@babel/plugin-transform-typescript': 7.29.7(@babel/core@7.29.7)
       '@rolldown/pluginutils': 1.0.1
       '@vue/babel-plugin-jsx': 1.5.0(@babel/core@7.29.7)
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
       vue: 3.5.38(typescript@5.9.3)
     transitivePeerDependencies:
       - supports-color
 
   '@vitejs/plugin-vue@5.2.4(vite@6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.38(typescript@5.9.3))':
     dependencies:
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
       vue: 3.5.38(typescript@5.9.3)
 
   '@vue-macros/common@1.16.1(vue@3.5.38(typescript@5.9.3))':
@@ -10575,7 +10575,7 @@ snapshots:
 
   vite-hot-client@0.2.4(vite@6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)):
     dependencies:
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
 
   vite-node@3.2.4(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0):
     dependencies:
@@ -10610,7 +10610,7 @@ snapshots:
       npm-run-path: 4.0.1
       strip-ansi: 6.0.1
       tiny-invariant: 1.3.3
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
       vscode-languageclient: 7.0.0
       vscode-languageserver: 7.0.0
       vscode-languageserver-textdocument: 1.0.12
@@ -10629,7 +10629,7 @@ snapshots:
       perfect-debounce: 1.0.0
       picocolors: 1.1.1
       sirv: 3.0.2
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
     optionalDependencies:
       '@nuxt/kit': 3.21.8(magicast@0.3.5)
     transitivePeerDependencies:
@@ -10647,25 +10647,9 @@ snapshots:
       '@vue/compiler-dom': 3.5.38
       kolorist: 1.8.0
       magic-string: 0.30.21
-      vite: 6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
-
-  vite@6.4.3(@types/node@22.19.21)(jiti@1.21.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0):
-    dependencies:
-      esbuild: 0.25.12
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
-      postcss: 8.5.15
-      rollup: 4.62.0
-      tinyglobby: 0.2.17
-    optionalDependencies:
-      '@types/node': 22.19.21
-      fsevents: 2.3.3
-      jiti: 1.21.7
-      terser: 5.48.0
-      tsx: 4.22.4
-      yaml: 2.9.0
 
   vite@6.4.3(@types/node@22.19.21)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0):
     dependencies:

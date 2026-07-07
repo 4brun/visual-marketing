@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .output/
+.nuxt/
+.mimocode/
 .env
 .env.local
 *.log

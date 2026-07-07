@@ -108,7 +108,7 @@
               <button
                 v-for="(preset, key) in RESIZE_PRESETS"
                 :key="key"
-                @click="applyPreset(key as string)"
+                @click="applyPreset(String(key))"
                 class="px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
                 :class="selectedPreset === key
                   ? 'bg-brand-500 text-white shadow-glow'

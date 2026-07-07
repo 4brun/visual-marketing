@@ -1,17 +1,23 @@
-import { Queue, Worker, Job } from 'bullmq';
-import { getRedisClient } from './redis';
-import { generateScene } from '../ai/sceneGeneration';
-import { uploadProcessed } from '../storage/s3.service';
-import { logger } from '../../utils/logger';
+import { Queue, QueueEvents, Worker, Job } from 'bullmq';
+import { getRedisConnection } from './redis.js';
+import { generateScene } from '../ai/sceneGeneration.js';
+import { uploadProcessed } from '../storage/s3.service.js';
+import { logger } from '../../utils/logger.js';
+import { PrismaClient } from '@prisma/client';
 
 const QUEUE_NAME = 'generate-scene';
+const prisma = new PrismaClient();
 
 export const generateSceneQueue = new Queue(QUEUE_NAME, {
-  connection: getRedisClient(),
+  connection: getRedisConnection(),
   defaultJobOptions: {
     attempts: 3,
     backoff: { type: 'exponential', delay: 10000 },
   },
+});
+
+export const generateSceneQueueEvents = new QueueEvents(QUEUE_NAME, {
+  connection: getRedisConnection(),
 });
 
 interface GenerateSceneJobData {
@@ -38,14 +44,23 @@ export function createGenerateSceneWorker() {
 
         const { key } = await uploadProcessed(userId, 'backgrounds', imageId, bgBuffer);
 
+        await prisma.image.update({
+          where: { id: imageId },
+          data: { backgroundUrl: key },
+        });
+
         return { backgroundUrl: key };
       } catch (error) {
+        await prisma.image.update({
+          where: { id: imageId },
+          data: { status: 'FAILED', error: String(error) },
+        });
         logger.error({ imageId, error }, 'Scene generation failed');
         throw error;
       }
     },
     {
-      connection: getRedisClient(),
+      connection: getRedisConnection(),
       concurrency: 1,
     },
   );
@@ -59,4 +74,9 @@ export function createGenerateSceneWorker() {
   });
 
   return worker;
+}
+
+if (process.argv[1] && !process.argv[1].includes('vitest')) {
+  createGenerateSceneWorker();
+  logger.info('Generate scene worker started');
 }

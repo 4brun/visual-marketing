@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/logger.js';
 
 export async function resizeImage(
   inputBuffer: Buffer,

@@ -1,6 +1,6 @@
 import Replicate from 'replicate';
-import { getEnv } from '../../config';
-import { logger } from '../../utils/logger';
+import { getEnv } from '../../config/index.js';
+import { logger } from '../../utils/logger.js';
 
 let _client: Replicate;
 
@@ -32,14 +32,15 @@ export async function runReplicateModel(
   throw new Error('Unexpected Replicate output format');
 }
 
-export async function pollPrediction(
-  predictionId: string,
-): Promise<string> {
+const POLL_INTERVAL_MS = 2000;
+const MAX_POLL_ATTEMPTS = 150;
+
+export async function pollPrediction(predictionId: string): Promise<string> {
   const client = getReplicateClient();
 
-  while (true) {
+  for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
     const prediction = await client.predictions.get(predictionId);
-    logger.info({ status: prediction.status }, 'Prediction status');
+    logger.info({ status: prediction.status, attempt }, 'Prediction status');
 
     if (prediction.status === 'succeeded') {
       const output = prediction.output;
@@ -54,6 +55,8 @@ export async function pollPrediction(
       throw new Error(`Prediction failed: ${prediction.error}`);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
+
+  throw new Error(`Prediction timed out after ${MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS / 1000}s`);
 }

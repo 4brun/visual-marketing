@@ -1,6 +1,6 @@
-import { runReplicateModel } from './replicate.client';
-import { buildScenePrompt } from './promptBuilder';
-import { logger } from '../../utils/logger';
+import { runReplicateModel } from './replicate.client.js';
+import { buildScenePrompt } from './promptBuilder.js';
+import { logger } from '../../utils/logger.js';
 
 const FLUX_MODEL = 'black-forest-labs/flux-1.1-pro';
 
