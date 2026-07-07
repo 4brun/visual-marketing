@@ -67,6 +67,12 @@ docker compose up -d postgres redis minio
 pnpm db:migrate
 ```
 
+> Если PostgreSQL запущен в Docker, используйте:
+> ```bash
+> $env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/visual_marketing"
+> pnpm --filter api exec prisma migrate deploy
+> ```
+
 ### 5. Запуск dev-серверов
 
 ```bash

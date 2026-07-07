@@ -49,7 +49,8 @@ docker compose ps
 ## Шаг 4 — Миграция базы данных
 
 ```bash
-pnpm db:migrate
+$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/visual_marketing"
+pnpm --filter api exec prisma migrate deploy
 ```
 
 ## Шаг 5 — Запуск dev-серверов
