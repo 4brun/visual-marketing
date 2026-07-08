@@ -80,6 +80,8 @@
 import { ref, onMounted } from 'vue';
 import type { Project } from '@visual-marketing/shared';
 import { useApi } from '~/composables/useApi';
+import { useRouter } from '#app';
+import { definePageMeta } from '#imports';
 
 definePageMeta({ layout: 'editor' });
 

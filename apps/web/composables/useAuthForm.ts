@@ -1,6 +1,9 @@
+import { ref, reactive } from 'vue';
 import type { AxiosError } from 'axios';
+import type { User } from '@visual-marketing/shared';
 import { useApi } from '~/composables/useApi';
 import { useAuthStore } from '~/stores/auth';
+import { useRouter } from '#app';
 
 interface ResolvedError {
   message: string;

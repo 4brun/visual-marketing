@@ -221,6 +221,7 @@ import type { JobStatus } from '@visual-marketing/shared';
 import { useApi } from '~/composables/useApi';
 import { useCanvas } from '~/composables/useCanvas';
 import { useEditorStore } from '~/stores/editor';
+import { definePageMeta } from '#imports';
 
 definePageMeta({ layout: 'editor' });
 

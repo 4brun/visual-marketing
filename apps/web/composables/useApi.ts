@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance, type AxiosError } from 'axios';
 import type { User } from '@visual-marketing/shared';
 import { useAuthStore } from '~/stores/auth';
+import { useRuntimeConfig } from '#app';
 
 interface ApiResponse<T = unknown> {
   data: T;
