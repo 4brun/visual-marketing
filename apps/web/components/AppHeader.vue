@@ -227,6 +227,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useAuthStore } from '~/stores/auth';
 
 const authStore = useAuthStore();
 const router = useRouter();

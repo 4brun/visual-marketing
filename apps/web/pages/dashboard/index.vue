@@ -79,6 +79,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Project } from '@visual-marketing/shared';
+import { useApi } from '~/composables/useApi';
 
 definePageMeta({ layout: 'editor' });
 

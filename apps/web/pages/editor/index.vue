@@ -218,6 +218,9 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { RESIZE_PRESETS } from '@visual-marketing/shared';
 import type { JobStatus } from '@visual-marketing/shared';
+import { useApi } from '~/composables/useApi';
+import { useCanvas } from '~/composables/useCanvas';
+import { useEditorStore } from '~/stores/editor';
 
 definePageMeta({ layout: 'editor' });
 

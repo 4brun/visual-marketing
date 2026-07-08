@@ -1,4 +1,6 @@
 import type { AxiosError } from 'axios';
+import { useApi } from '~/composables/useApi';
+import { useAuthStore } from '~/stores/auth';
 
 interface ResolvedError {
   message: string;
