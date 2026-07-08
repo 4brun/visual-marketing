@@ -68,12 +68,12 @@ export function useAuthForm() {
     }
   }
 
-  return {
+  return reactive({
     error,
     errorCode,
     loading,
     clearError,
     login,
     register,
-  };
+  });
 }
