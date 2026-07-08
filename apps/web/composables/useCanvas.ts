@@ -13,6 +13,18 @@ export function useCanvas() {
       height,
       backgroundColor: '#ffffff',
       selection: true,
+      controlsAboveOverlay: true,
+    });
+
+    // Configure default object controls appearance
+    fabric.InteractiveFabricObject.prototype.set({
+      cornerColor: '#6366f1',
+      cornerStrokeColor: '#6366f1',
+      cornerSize: 10,
+      cornerStyle: 'circle',
+      borderScaleFactor: 2,
+      transparentCorners: false,
+      borderColor: '#6366f1',
     });
 
     return canvas;
@@ -51,9 +63,6 @@ export function useCanvas() {
       top: options?.top ?? canvas.height! / 2,
       originX: 'center',
       originY: 'center',
-      cornerSize: 10,
-      cornerColor: '#6366f1',
-      borderColor: '#6366f1',
     });
 
     img.scaleToWidth(Math.min(canvas.width! * 0.6, img.width!));
@@ -61,6 +70,34 @@ export function useCanvas() {
     canvas.setActiveObject(img);
     canvas.renderAll();
 
+    return img;
+  }
+
+  async function addImageFromFile(file: File) {
+    if (!canvas) return;
+
+    const url = URL.createObjectURL(file);
+    const img = await fabric.FabricImage.fromURL(url);
+
+    // Scale image to fit canvas
+    const scaleX = canvas.width! / img.width!;
+    const scaleY = canvas.height! / img.height!;
+    const scale = Math.min(scaleX, scaleY, 1);
+
+    img.set({
+      left: canvas.width! / 2,
+      top: canvas.height! / 2,
+      originX: 'center',
+      originY: 'center',
+      scaleX: scale,
+      scaleY: scale,
+    });
+
+    canvas.add(img);
+    canvas.setActiveObject(img);
+    canvas.renderAll();
+
+    URL.revokeObjectURL(url);
     return img;
   }
 
@@ -100,6 +137,8 @@ export function useCanvas() {
 
   function exportToDataURL(format: 'png' | 'jpeg' = 'png', quality = 1): string {
     if (!canvas) throw new Error('Canvas not initialized');
+    canvas.discardActiveObject();
+    canvas.renderAll();
     return canvas.toDataURL({ format, quality, multiplier: 1 });
   }
 
@@ -127,6 +166,7 @@ export function useCanvas() {
     getCanvas,
     setBackgroundFromUrl,
     addObjectFromUrl,
+    addImageFromFile,
     addText,
     resize,
     exportToDataURL,

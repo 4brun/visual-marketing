@@ -1,15 +1,17 @@
 <template>
-  <div class="flex h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)]">
-    <aside class="w-80 xl:w-96 bg-[var(--bg-secondary)] border-r border-white/5 flex flex-col overflow-hidden">
-      <div class="p-4 border-b border-white/5">
+  <div class="editor-layout">
+    <!-- Sidebar -->
+    <aside class="editor-sidebar">
+      <div class="sidebar-header">
         <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Инструменты</h2>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+      <div class="sidebar-content">
+        <!-- Upload -->
         <div class="card p-4">
           <label class="block text-xs font-medium text-gray-400 mb-3 uppercase tracking-wider">Исходное фото</label>
           <div
-            class="relative border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-brand-500/50 transition-all duration-300 cursor-pointer group"
+            class="upload-zone"
             @click="fileInput?.click()"
             @dragover.prevent
             @drop.prevent="handleDrop"
@@ -35,7 +37,9 @@
           </div>
         </div>
 
+        <!-- Processing steps (only when image is uploaded) -->
         <div v-if="editorStore.currentImage" class="card p-4 space-y-4">
+          <!-- Step 1: Remove BG -->
           <div>
             <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Шаг 1: Удаление фона</label>
             <button
@@ -62,6 +66,7 @@
             </button>
           </div>
 
+          <!-- Step 2: Generate BG -->
           <div v-if="editorStore.currentImage?.cutoutUrl">
             <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Шаг 2: AI-фон</label>
             <input
@@ -102,6 +107,7 @@
             </button>
           </div>
 
+          <!-- Step 3: Size presets -->
           <div v-if="editorStore.currentImage?.cutoutUrl && editorStore.currentImage?.backgroundUrl">
             <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Шаг 3: Размер</label>
             <div class="grid grid-cols-2 gap-2">
@@ -119,6 +125,7 @@
             </div>
           </div>
 
+          <!-- Compose button -->
           <div v-if="editorStore.currentImage?.cutoutUrl && editorStore.currentImage?.backgroundUrl">
             <button
               @click="composeImage"
@@ -137,6 +144,7 @@
           </div>
         </div>
 
+        <!-- Text overlay -->
         <div class="card p-4">
           <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Текст</label>
           <input
@@ -161,7 +169,8 @@
         </div>
       </div>
 
-      <div class="p-4 border-t border-white/5">
+      <!-- Export -->
+      <div class="sidebar-footer">
         <button
           @click="exportImage"
           class="btn-primary w-full py-3"
@@ -174,7 +183,9 @@
       </div>
     </aside>
 
-    <main class="flex-1 flex items-center justify-center bg-[var(--bg-primary)] overflow-auto p-4 sm:p-8 relative">
+    <!-- Canvas area -->
+    <main class="editor-canvas-area">
+      <!-- Empty state -->
       <div
         v-if="!editorStore.currentImage"
         class="text-center animate-fade-in"
@@ -187,16 +198,25 @@
         <h3 class="text-lg font-semibold text-gray-400 mb-2">Загрузите фото для начала работы</h3>
         <p class="text-sm text-gray-500">Поддерживаются форматы PNG, JPG до 20MB</p>
       </div>
-      <canvas
+
+      <!-- Canvas wrapper - hidden when no image -->
+      <div
         v-show="editorStore.currentImage"
-        id="main-canvas"
-        class="rounded-xl shadow-2xl"
-      ></canvas>
+        ref="canvasWrapperRef"
+        class="canvas-wrapper"
+      >
+        <canvas
+          ref="canvasRef"
+          id="main-canvas"
+        ></canvas>
+      </div>
     </main>
   </div>
 </template>
 
 <script setup>
+definePageMeta({ layout: 'editor' });
+
 import { RESIZE_PRESETS } from '@visual-marketing/shared';
 
 const api = useApi();
@@ -204,6 +224,8 @@ const canvas = useCanvas();
 const editorStore = useEditorStore();
 
 const fileInput = ref(null);
+const canvasRef = ref(null);
+const canvasWrapperRef = ref(null);
 const prompt = ref('Современная минималистичная гостиная, мягкий естественный свет');
 const overlayText = ref('');
 const textColor = ref('#ffffff');
@@ -220,7 +242,9 @@ const quickStyles = [
 ];
 
 onMounted(() => {
-  canvas.initCanvas('main-canvas', 900, 1200);
+  // Initialize canvas with a reasonable default size
+  // It will be resized when an image is loaded
+  canvas.initCanvas('main-canvas', 600, 800);
 });
 
 onUnmounted(() => {
@@ -238,22 +262,34 @@ async function handleUpload(e) {
 }
 
 async function uploadFile(file) {
+  // Show the image on canvas immediately
+  await canvas.addImageFromFile(file);
+
+  // Then upload to server in background
   let projectId = editorStore.projectId;
   if (!projectId) {
-    const { data } = await api.post('/projects', { name: 'Новый проект' });
-    projectId = data.project.id;
-    editorStore.setProject(projectId);
+    try {
+      const { data } = await api.post('/projects', { name: 'Новый проект' });
+      projectId = data.project.id;
+      editorStore.setProject(projectId);
+    } catch (e) {
+      console.error('Failed to create project', e);
+      return;
+    }
   }
 
   const formData = new FormData();
   formData.append('file', file);
   formData.append('projectId', projectId);
 
-  const { data } = await api.post('/images/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-
-  editorStore.setCurrentImage({ id: data.imageId, width: data.width, height: data.height, status: 'PENDING' });
+  try {
+    const { data } = await api.post('/images/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    editorStore.setCurrentImage({ id: data.imageId, width: data.width, height: data.height, status: 'PENDING' });
+  } catch (e) {
+    console.error('Failed to upload image', e);
+  }
 }
 
 async function removeBackground() {
@@ -329,3 +365,97 @@ function exportImage() {
   link.click();
 }
 </script>
+
+<style scoped>
+.editor-layout {
+  display: flex;
+  height: calc(100vh - 3.5rem - 3.5rem);
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .editor-layout {
+    height: calc(100vh - 4rem - 4rem);
+  }
+}
+
+.editor-sidebar {
+  width: 20rem;
+  background: var(--bg-secondary);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 1280px) {
+  .editor-sidebar {
+    width: 24rem;
+  }
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.editor-canvas-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  overflow: hidden;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.canvas-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.canvas-wrapper canvas {
+  max-width: 100%;
+  max-height: calc(100vh - 8rem);
+  object-fit: contain;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.upload-zone {
+  position: relative;
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.upload-zone:hover {
+  border-color: rgba(124, 58, 237, 0.5);
+}
+
+.upload-zone:hover .upload-icon {
+  background: rgba(124, 58, 237, 0.1);
+}
+</style>

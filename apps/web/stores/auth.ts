@@ -29,6 +29,9 @@ export const useAuthStore = defineStore('auth', {
 
     setUser(user: User) {
       this.user = user;
+      if (import.meta.client) {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
     },
 
     login(user: User, token: string, refreshToken: string) {
@@ -44,16 +47,42 @@ export const useAuthStore = defineStore('auth', {
       if (import.meta.client) {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
       }
     },
 
     loadFromStorage() {
-      if (import.meta.client) {
-        const token = localStorage.getItem('token');
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (token && refreshToken) {
-          this.setTokens(token, refreshToken);
+      if (!import.meta.client) return;
+
+      const token = localStorage.getItem('token');
+      const refreshToken = localStorage.getItem('refreshToken');
+      const userJson = localStorage.getItem('user');
+
+      if (token && refreshToken) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.isAuthenticated = true;
+
+        if (userJson) {
+          try {
+            this.user = JSON.parse(userJson);
+          } catch {}
         }
+      }
+    },
+
+    async fetchUser() {
+      if (!this.token) return;
+      try {
+        const config = useRuntimeConfig();
+        const response = await $fetch<{ user: User | null }>(`${config.public.apiBase}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+        if (response.user) {
+          this.setUser(response.user);
+        }
+      } catch {
+        this.logout();
       }
     },
   },

@@ -230,7 +230,7 @@
     </section>
 
     <!-- FAQ Section -->
-    <section class="py-20 px-4 sm:px-6 relative">
+    <section id="faq" class="py-20 px-4 sm:px-6 relative">
       <div class="max-w-3xl mx-auto">
         <div ref="faqTitle" class="text-center mb-12">
           <h2 class="text-3xl sm:text-4xl font-bold mb-4">

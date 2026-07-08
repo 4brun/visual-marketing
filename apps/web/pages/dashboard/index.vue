@@ -81,6 +81,8 @@
 </template>
 
 <script setup>
+definePageMeta({ layout: 'editor' });
+
 const api = useApi();
 const router = useRouter();
 

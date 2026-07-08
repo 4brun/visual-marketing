@@ -7,6 +7,11 @@
 <script setup>
 const authStore = useAuthStore();
 authStore.loadFromStorage();
+
+// Fetch fresh user data if tokens exist
+if (authStore.isAuthenticated) {
+  authStore.fetchUser();
+}
 </script>
 
 <style>

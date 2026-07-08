@@ -1,12 +1,14 @@
 <template>
   <header
     :class="[
-      'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-      scrolled ? 'glass-strong shadow-lg shadow-black/20' : 'bg-transparent',
+      'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+      scrolled
+        ? 'bg-[var(--bg-primary)]/90 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/20'
+        : 'bg-[var(--bg-primary)]/60 backdrop-blur-md border-b border-white/5',
     ]"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16 lg:h-20">
+      <div class="flex items-center justify-between h-14 lg:h-16">
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center gap-3 group shrink-0">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent-cyan flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:shadow-glow">
@@ -291,6 +293,7 @@ const navLinks = computed(() => {
   return [
     { to: '/#features', label: 'Возможности' },
     { to: '/#pricing', label: 'Цены' },
+    { to: '/#faq', label: 'Вопросы' },
   ];
 });
 

@@ -40,7 +40,7 @@ app.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply
   }
 });
 
-await app.register(multipart, { limits: { fileSize: 20 * 1024 * 1024 } });
+await app.register(multipart, { limits: { fileSize: 20 * 1024 * 1024 }, attachFieldsToBody: true });
 await app.register(rateLimit, { max: 100, timeWindow: '1 minute' });
 
 app.get('/api/health', async () => ({ status: 'ok' }));
