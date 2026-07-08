@@ -61,6 +61,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+
 type BatchResultStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
 interface BatchResult {

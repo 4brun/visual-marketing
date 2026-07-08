@@ -77,6 +77,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import type { Project } from '@visual-marketing/shared';
 
 definePageMeta({ layout: 'editor' });

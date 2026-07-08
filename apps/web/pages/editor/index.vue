@@ -215,6 +215,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
 import { RESIZE_PRESETS } from '@visual-marketing/shared';
 import type { JobStatus } from '@visual-marketing/shared';
 

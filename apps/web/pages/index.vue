@@ -11,18 +11,17 @@
       <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8 animate-fade-in">
           <div class="w-2 h-2 rounded-full bg-accent-emerald animate-pulse"></div>
-          <span class="text-sm text-gray-300">Уже 500+ селлеров используют</span>
+          <span class="text-sm text-gray-300">Уже 500+ селлеров сэкономили на фотостудии</span>
         </div>
 
         <h1 ref="heroTitle" class="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight">
-          <span class="gradient-text">AI-визуалы</span>
+          <span class="gradient-text">AI-фото</span>
           <br />
-          <span class="text-white">для маркетплейсов</span>
+          <span class="text-white">для Wildberries и Ozon</span>
         </h1>
 
         <p ref="heroSubtitle" class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10 text-balance">
-          Загрузите фото товара — AI создаст профессиональный интерьер, сменит свет
-          и добавит инфографику. Готово для Wildberries и Ozon.
+          Загрузите обычное фото товара — нейросеть за минуты создаст интерьер, свет и инфографику под требования маркетплейсов. Больше кликов, меньше затрат.
         </p>
 
         <div ref="heroCta" class="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -35,22 +34,22 @@
             </span>
           </NuxtLink>
           <a href="#features" class="btn-secondary px-8 py-4 text-lg">
-            Смотреть возможности
+            Посмотреть примеры
           </a>
         </div>
 
-        <div ref="heroStats" class="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto">
+        <div ref="heroStats" class="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
           <div class="text-center">
-            <div class="text-2xl sm:text-3xl font-bold gradient-text">10x</div>
-            <div class="text-xs sm:text-sm text-gray-500 mt-1">Быстрее</div>
+            <div class="text-lg sm:text-xl font-bold gradient-text">до 10x быстрее</div>
+            <div class="text-xs sm:text-sm text-gray-500 mt-1">чем студия</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl sm:text-3xl font-bold gradient-text">90%</div>
-            <div class="text-xs sm:text-sm text-gray-500 mt-1">Дешевле</div>
+            <div class="text-lg sm:text-xl font-bold gradient-text">до 90% дешевле</div>
+            <div class="text-xs sm:text-sm text-gray-500 mt-1">контент-агентства</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl sm:text-3xl font-bold gradient-text">500+</div>
-            <div class="text-xs sm:text-sm text-gray-500 mt-1">Клиентов</div>
+            <div class="text-lg sm:text-xl font-bold gradient-text">500+ селлеров</div>
+            <div class="text-xs sm:text-sm text-gray-500 mt-1">уже используют</div>
           </div>
         </div>
       </div>
@@ -61,10 +60,10 @@
       <div class="max-w-6xl mx-auto">
         <div ref="beforeAfterTitle" class="text-center mb-12">
           <h2 class="text-3xl sm:text-4xl font-bold mb-4">
-            До и <span class="gradient-text">после</span>
+            До и после: <span class="gradient-text">студия без студии</span>
           </h2>
           <p class="text-gray-400 max-w-xl mx-auto">
-            Обычное фото с телефона превращается в профессиональный рекламный баннер
+            Обычное фото с телефона превращается в продающий баннер для карточки товара
           </p>
         </div>
 
@@ -118,10 +117,10 @@
       <div class="max-w-6xl mx-auto">
         <div ref="featuresTitle" class="text-center mb-16">
           <h2 class="text-3xl sm:text-4xl font-bold mb-4">
-            Всё что нужно для <span class="gradient-text">продаж</span>
+            Всё, что нужно для <span class="gradient-text">карточки</span>
           </h2>
           <p class="text-gray-400 max-w-xl mx-auto">
-            Профессиональные фото за минуты, а не часы
+            Профессиональные визуалы за минуты, а не часы
           </p>
         </div>
 
@@ -152,7 +151,7 @@
             Как это <span class="gradient-text">работает</span>
           </h2>
           <p class="text-gray-400 max-w-xl mx-auto">
-            Три простых шага до профессионального фото
+            Три шага до продающего фото
           </p>
         </div>
 
@@ -184,7 +183,7 @@
             Прозрачные <span class="gradient-text">цены</span>
           </h2>
           <p class="text-gray-400 max-w-xl mx-auto">
-            Начните бесплатно, масштабируйтесь по мере роста
+            Начните бесплатно — платите только за рост объёмов
           </p>
         </div>
 
@@ -284,10 +283,10 @@
           <div class="absolute inset-0 noise-overlay"></div>
           <div class="relative z-10 text-center py-16 px-8">
             <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Готовы повысить продажи?
+              Готовы увеличить продажи?
             </h2>
             <p class="text-white/80 max-w-xl mx-auto mb-8">
-              Присоединяйтесь к 500+ селлерам, которые уже используют AI для создания продающих фото
+              Присоединяйтесь к селлерам, которые уже создают студийные фото без студии и поднимают конверсию карточек с помощью AI
             </p>
             <NuxtLink
               to="/auth/register"
@@ -306,6 +305,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import type { gsap as GsapType, ScrollTrigger as ScrollTriggerType } from 'gsap';
 
 const { $gsap, $ScrollTrigger } = useNuxtApp() as { $gsap: typeof GsapType; $ScrollTrigger: typeof ScrollTriggerType };
@@ -354,33 +354,33 @@ interface Faq {
 }
 
 const features: Feature[] = [
-  { icon: '✂️', title: 'Удаление фона', description: 'Точный AI cutout вашего товара за секунды. Поддержка сложных форм и текстур.', color: '#8b5cf6' },
-  { icon: '🏠', title: 'AI-интерьеры', description: 'Профессиональные сцены: от скандинавской гостини до лофта. Генерация по текстовому описанию.', color: '#06b6d4' },
-  { icon: '📐', title: 'Размеры маркетплейсов', description: 'WB 3:4, Ozon 1:1, Яндекс Маркет — одним кликом подгоняем под требования площадки.', color: '#10b981' },
-  { icon: '✨', title: 'Инфографика', description: 'Готовые шаблоны: "Ручная работа", "Хит продаж", "Скидка" и другие плашки.', color: '#f59e0b' },
-  { icon: '📦', title: 'Пакетная обработка', description: 'Обработайте всю коллекцию в одном стиле за один клик. Экономьте часы работы.', color: '#ec4899' },
-  { icon: '🎨', title: 'Canvas-редактор', description: 'Перетаскивайте объекты, меняйте расположение, добавляйте текст — всё в браузере.', color: '#ef4444' },
+  { icon: '✂️', title: 'Удаление фона', description: 'Точный AI cutout вашего товара за секунды. Поддержка сложных форм, тканей и прозрачных поверхностей.', color: '#8b5cf6' },
+  { icon: '🏠', title: 'AI-интерьеры', description: 'Готовые сцены: от скандинавской гостиной до минималистичного лофта. Генерация по текстовому описанию под вашу нишу.', color: '#06b6d4' },
+  { icon: '📐', title: 'Размеры маркетплейсов', description: 'WB 3:4, Ozon 1:1, Яндекс Маркет — одним кликом подгоняем размеры и пропорции под правила площадки.', color: '#10b981' },
+  { icon: '✨', title: 'Инфографика', description: 'Шаблоны «Ручная работа», «Хит продаж», «Скидка» и другие плашки. Добавьте преимущества товара прямо на изображение.', color: '#f59e0b' },
+  { icon: '📦', title: 'Пакетная обработка', description: 'Обработайте всю коллекцию в одном стиле за один клик. Единый визуал для бренда и экономия часов ручной работы.', color: '#ec4899' },
+  { icon: '🎨', title: 'Canvas-редактор', description: 'Перетаскивайте объекты, меняйте фон, добавляйте текст и иконки — полный контроль над кадром прямо в браузере.', color: '#ef4444' },
 ];
 
 const steps: Step[] = [
-  { title: 'Загрузите фото', description: 'Сфотографуйте товар на телефон и загрузите в сервис' },
-  { title: 'AI обработает', description: 'Нейросеть удалит фон и создаст профессиональный интерьер' },
-  { title: 'Скачайте результат', description: 'Отредактируйте в canvas-редакторе и скачайте готовое фото' },
+  { title: 'Загрузите фото', description: 'Сфотографируйте товар на телефон или выгрузите текущие картинки и загрузите их в сервис.' },
+  { title: 'AI обработает', description: 'Нейросеть удалит фон, подберёт интерьер и свет, добавит инфографику под ваш формат продаж.' },
+  { title: 'Скачайте результат', description: 'При необходимости доработайте в canvas-редакторе и скачайте готовые изображения для WB, Ozon и других площадок.' },
 ];
 
 const plans: Plan[] = [
-  { name: 'Бесплатный', price: '0', credits: '10', cta: 'Начать', popular: false, features: ['10 AI-обработок', 'Удаление фона', '3 стиля интерьера', 'Экспорт PNG'] },
-  { name: 'Стартовый', price: '499', credits: '100', cta: 'Выбрать', popular: false, features: ['100 AI-обработок', 'Все стили интерьера', 'Пакетная обработка', 'Приоритетная очередь'] },
-  { name: 'Про', price: '1 499', credits: '500', cta: 'Выбрать', popular: true, features: ['500 AI-обработок', 'Кастомные промпты', 'Batch-режим', 'Приоритетная поддержка', 'API доступ'] },
+  { name: 'Бесплатный', price: '0', credits: '10', cta: 'Начать', popular: false, features: ['10 AI-обработок', 'Удаление фона', '3 стиля интерьера', 'Экспорт PNG', 'Коммерческое использование'] },
+  { name: 'Стартовый', price: '499', credits: '100', cta: 'Выбрать', popular: false, features: ['100 AI-обработок', 'Все стили интерьера', 'Пакетная обработка', 'Приоритетная очередь', 'Коммерческое использование'] },
+  { name: 'Про', price: '1 499', credits: '500', cta: 'Выбрать', popular: true, features: ['500 AI-обработок', 'Кастомные промпты', 'Batch-режим', 'Приоритетная поддержка', 'API-доступ'] },
   { name: 'Бизнес', price: '2 999', credits: '∞', cta: 'Связаться', popular: false, features: ['Безлимитные обработки', 'Персональный менеджер', 'SLA 99.9%', 'Интеграция с WB/Ozon', 'Белая метка'] },
 ];
 
 const faqs = ref<Faq[]>([
-  { question: 'Какие фото подходят для обработки?', answer: 'Любые фото товаров: ковры, декор, посуда, одежда, обувь. Рекомендуем делать фото при хорошем освещении на простом фоне. Форматы: PNG, JPG до 20MB.', open: false },
-  { question: 'Сколько времени занимает обработка?', answer: 'Удаление фона: 5-10 секунд. Генерация AI-фона: 15-30 секунд. Пакетная обработка 10 фото: 2-3 минуты.', open: false },
-  { question: 'Можно ли использовать результаты коммерчески?', answer: 'Да, все сгенерированные изображения принадлежат вам. Вы можете свободно использовать их для карточек товаров на Wildberries, Ozon и других площадках.', open: false },
-  { question: 'Какие стили интерьера доступны?', answer: 'Скандинавский, лофт, минимализм, классический, бохо, японский, ар-деко. Также вы можете описать желаемый стиль текстом — AI создаст сцену по вашему описанию.', open: false },
-  { question: 'Есть ли пробный период?', answer: 'Да, при регистрации вы получаете 10 бесплатных кредитов на обработку. Этого достаточно для тестирования всех возможностей сервиса.', open: false },
+  { question: 'Какие фото подходят для обработки?', answer: 'Подходят любые фото товара на нейтральном или простом фоне. Чем лучше исходное освещение, тем чище результат.', open: false },
+  { question: 'Сколько времени занимает обработка?', answer: 'В среднем обработка одного фото занимает от 5 до 30 секунд, пакетная обработка — несколько минут.', open: false },
+  { question: 'Можно ли использовать результаты коммерчески?', answer: 'Да, вы можете использовать сгенерированные изображения для продаж на маркетплейсах и в рекламе.', open: false },
+  { question: 'Какие стили интерьера доступны?', answer: 'Скандинавский, минимализм, лофт, классика и другие — список постоянно пополняется.', open: false },
+  { question: 'Есть ли пробный период?', answer: 'Да, на бесплатном тарифе доступны 10 обработок без привязки карты.', open: false },
 ]);
 
 function toggleFaq(index: number): void {

@@ -226,6 +226,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();

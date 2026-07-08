@@ -97,6 +97,8 @@
 </template>
 
 <script setup lang="ts">
+import { reactive, ref } from 'vue';
+
 const authForm = useAuthForm();
 
 const form = reactive<{ name: string; email: string; password: string }>({ name: '', email: '', password: '' });
