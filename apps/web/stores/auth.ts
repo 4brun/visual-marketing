@@ -1,20 +1,52 @@
 import { defineStore } from 'pinia';
+import type { User, Plan } from '@visual-marketing/shared';
 
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-  plan: string;
-  creditsLeft: number;
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
 }
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    user: null as User | null,
-    token: null as string | null,
-    refreshToken: null as string | null,
+  state: (): AuthState => ({
+    user: null,
+    token: null,
+    refreshToken: null,
     isAuthenticated: false,
   }),
+
+  getters: {
+    planName: (state): string => {
+      const names: Record<Plan, string> = {
+        FREE: 'Бесплатный',
+        STARTER: 'Стартовый',
+        PRO: 'Про',
+        BUSINESS: 'Бизнес',
+      };
+      return names[state.user?.plan ?? 'FREE'];
+    },
+
+    planStyle: (state): string => {
+      const styles: Record<Plan, string> = {
+        FREE: 'bg-gray-500/20 text-gray-300',
+        STARTER: 'bg-blue-500/20 text-blue-300',
+        PRO: 'bg-brand-500/20 text-brand-300',
+        BUSINESS: 'bg-amber-500/20 text-amber-300',
+      };
+      return styles[state.user?.plan ?? 'FREE'];
+    },
+
+    maxCredits: (state): number => {
+      const map: Record<Plan, number> = { FREE: 10, STARTER: 100, PRO: 500, BUSINESS: 999 };
+      return map[state.user?.plan ?? 'FREE'];
+    },
+
+    userInitial: (state): string => {
+      const name = state.user?.name || state.user?.email || '?';
+      return name.charAt(0).toUpperCase();
+    },
+  },
 
   actions: {
     setTokens(token: string, refreshToken: string) {
@@ -65,8 +97,8 @@ export const useAuthStore = defineStore('auth', {
 
         if (userJson) {
           try {
-            this.user = JSON.parse(userJson);
-          } catch {}
+            this.user = JSON.parse(userJson) as User;
+          } catch { /* ignore corrupt data */ }
         }
       }
     },

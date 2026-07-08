@@ -1,6 +1,11 @@
-import axios from 'axios';
+import axios, { type AxiosInstance, type AxiosError } from 'axios';
+import type { User } from '@visual-marketing/shared';
 
-export function useApi() {
+interface ApiResponse<T = unknown> {
+  data: T;
+}
+
+export function useApi(): AxiosInstance {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
@@ -11,25 +16,27 @@ export function useApi() {
     },
   });
 
-  api.interceptors.request.use((config) => {
+  api.interceptors.request.use((reqConfig) => {
     if (authStore.token) {
-      config.headers.Authorization = `Bearer ${authStore.token}`;
+      reqConfig.headers.Authorization = `Bearer ${authStore.token}`;
     }
-    return config;
+    return reqConfig;
   });
 
   api.interceptors.response.use(
     (response) => response,
-    async (error) => {
+    async (error: AxiosError<{ message?: string }>) => {
       if (error.response?.status === 401 && authStore.refreshToken) {
         try {
-          const { data } = await axios.post(
+          const { data } = await axios.post<{ token: string; refreshToken: string }>(
             `${config.public.apiBase}/api/auth/refresh`,
             { refreshToken: authStore.refreshToken },
           );
           authStore.setTokens(data.token, data.refreshToken);
-          error.config.headers.Authorization = `Bearer ${data.token}`;
-          return api(error.config);
+          if (error.config) {
+            error.config.headers.Authorization = `Bearer ${data.token}`;
+          }
+          return api(error.config!);
         } catch {
           authStore.logout();
         }

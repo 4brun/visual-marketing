@@ -15,9 +15,9 @@
 
     <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div v-for="i in 6" :key="i" class="card p-4">
-        <div class="skeleton h-40 mb-4"></div>
-        <div class="skeleton h-4 w-2/3 mb-2"></div>
-        <div class="skeleton h-3 w-1/3"></div>
+        <div class="skeleton h-40 mb-4" />
+        <div class="skeleton h-4 w-2/3 mb-2" />
+        <div class="skeleton h-3 w-1/3" />
       </div>
     </div>
 
@@ -29,9 +29,7 @@
       </div>
       <h3 class="text-lg font-semibold text-gray-400 mb-2">Пока нет проектов</h3>
       <p class="text-sm text-gray-500 mb-6">Начните с создания первого проекта в редакторе</p>
-      <NuxtLink to="/editor" class="btn-primary">
-        Открыть редактор
-      </NuxtLink>
+      <NuxtLink to="/editor" class="btn-primary">Открыть редактор</NuxtLink>
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -64,9 +62,7 @@
         <div class="flex items-start justify-between">
           <div>
             <h3 class="font-semibold group-hover:text-white transition-colors">{{ project.name }}</h3>
-            <p class="text-sm text-gray-400 mt-1">
-              {{ project.images?.length || 0 }} изображений
-            </p>
+            <p class="text-sm text-gray-400 mt-1">{{ project.images?.length || 0 }} изображений</p>
           </div>
           <div class="flex items-center gap-1 text-xs text-gray-500">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,18 +76,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import type { Project } from '@visual-marketing/shared';
+
 definePageMeta({ layout: 'editor' });
 
 const api = useApi();
 const router = useRouter();
 
-const projects = ref([]);
-const loading = ref(true);
+const projects = ref<Project[]>([]);
+const loading = ref<boolean>(true);
 
 onMounted(async () => {
   try {
-    const { data } = await api.get('/projects');
+    const { data } = await api.get<{ projects: Project[] }>('/projects');
     projects.value = data.projects;
   } catch (e) {
     console.error('Failed to load projects', e);
@@ -100,7 +98,7 @@ onMounted(async () => {
   }
 });
 
-function openProject(id) {
+function openProject(id: string): void {
   router.push(`/editor?project=${id}`);
 }
 </script>

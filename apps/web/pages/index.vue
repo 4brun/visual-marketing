@@ -284,7 +284,7 @@
           <div class="absolute inset-0 noise-overlay"></div>
           <div class="relative z-10 text-center py-16 px-8">
             <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Готовы提升 продажи?
+              Готовы повысить продажи?
             </h2>
             <p class="text-white/80 max-w-xl mx-auto mb-8">
               Присоединяйтесь к 500+ селлерам, которые уже используют AI для создания продающих фото
@@ -305,143 +305,85 @@
   </div>
 </template>
 
-<script setup>
-const { $gsap, $ScrollTrigger } = useNuxtApp();
+<script setup lang="ts">
+import type { gsap as GsapType, ScrollTrigger as ScrollTriggerType } from 'gsap';
 
-const heroTitle = ref(null);
-const heroSubtitle = ref(null);
-const heroCta = ref(null);
-const heroStats = ref(null);
-const beforeAfterTitle = ref(null);
-const beforeAfterGrid = ref(null);
-const featuresTitle = ref(null);
-const featuresGrid = ref(null);
-const howTitle = ref(null);
-const howSteps = ref(null);
-const pricingTitle = ref(null);
-const pricingGrid = ref(null);
-const faqTitle = ref(null);
-const faqList = ref(null);
-const ctaSection = ref(null);
+const { $gsap, $ScrollTrigger } = useNuxtApp() as { $gsap: typeof GsapType; $ScrollTrigger: typeof ScrollTriggerType };
 
-const features = [
-  {
-    icon: '✂️',
-    title: 'Удаление фона',
-    description: 'Точный AI cutout вашего товара за секунды. Поддержка сложных форм и текстур.',
-    color: '#8b5cf6',
-  },
-  {
-    icon: '🏠',
-    title: 'AI-интерьеры',
-    description: 'Профессиональные сцены: от скандинавской гостини до лофта. Генерация по текстовому описанию.',
-    color: '#06b6d4',
-  },
-  {
-    icon: '📐',
-    title: 'Размеры маркетплейсов',
-    description: 'WB 3:4, Ozon 1:1, Яндекс Маркет — одним кликом подгоняем под требования площадки.',
-    color: '#10b981',
-  },
-  {
-    icon: '✨',
-    title: 'Инфографика',
-    description: 'Готовые шаблоны: "Ручная работа", "Хит продаж", "Скидка" и другие плашки.',
-    color: '#f59e0b',
-  },
-  {
-    icon: '📦',
-    title: 'Пакетная обработка',
-    description: 'Обработайте всю коллекцию в одном стиле за один клик. Экономьте часы работы.',
-    color: '#ec4899',
-  },
-  {
-    icon: '🎨',
-    title: 'Canvas-редактор',
-    description: 'Перетаскивайте объекты, меняйте расположение, добавляйте текст — всё в браузере.',
-    color: '#ef4444',
-  },
+const heroTitle = ref<HTMLElement | null>(null);
+const heroSubtitle = ref<HTMLElement | null>(null);
+const heroCta = ref<HTMLElement | null>(null);
+const heroStats = ref<HTMLElement | null>(null);
+const beforeAfterTitle = ref<HTMLElement | null>(null);
+const beforeAfterGrid = ref<HTMLElement | null>(null);
+const featuresTitle = ref<HTMLElement | null>(null);
+const featuresGrid = ref<HTMLElement | null>(null);
+const howTitle = ref<HTMLElement | null>(null);
+const howSteps = ref<HTMLElement | null>(null);
+const pricingTitle = ref<HTMLElement | null>(null);
+const pricingGrid = ref<HTMLElement | null>(null);
+const faqTitle = ref<HTMLElement | null>(null);
+const faqList = ref<HTMLElement | null>(null);
+const ctaSection = ref<HTMLElement | null>(null);
+
+interface Feature {
+  icon: string;
+  title: string;
+  description: string;
+  color: string;
+}
+
+interface Step {
+  title: string;
+  description: string;
+}
+
+interface Plan {
+  name: string;
+  price: string;
+  credits: string;
+  cta: string;
+  popular: boolean;
+  features: string[];
+}
+
+interface Faq {
+  question: string;
+  answer: string;
+  open: boolean;
+}
+
+const features: Feature[] = [
+  { icon: '✂️', title: 'Удаление фона', description: 'Точный AI cutout вашего товара за секунды. Поддержка сложных форм и текстур.', color: '#8b5cf6' },
+  { icon: '🏠', title: 'AI-интерьеры', description: 'Профессиональные сцены: от скандинавской гостини до лофта. Генерация по текстовому описанию.', color: '#06b6d4' },
+  { icon: '📐', title: 'Размеры маркетплейсов', description: 'WB 3:4, Ozon 1:1, Яндекс Маркет — одним кликом подгоняем под требования площадки.', color: '#10b981' },
+  { icon: '✨', title: 'Инфографика', description: 'Готовые шаблоны: "Ручная работа", "Хит продаж", "Скидка" и другие плашки.', color: '#f59e0b' },
+  { icon: '📦', title: 'Пакетная обработка', description: 'Обработайте всю коллекцию в одном стиле за один клик. Экономьте часы работы.', color: '#ec4899' },
+  { icon: '🎨', title: 'Canvas-редактор', description: 'Перетаскивайте объекты, меняйте расположение, добавляйте текст — всё в браузере.', color: '#ef4444' },
 ];
 
-const steps = [
-  {
-    title: 'Загрузите фото',
-    description: 'Сфотографуйте товар на телефон и загрузите в сервис',
-  },
-  {
-    title: 'AI обработает',
-    description: 'Нейросеть удалит фон и создаст профессиональный интерьер',
-  },
-  {
-    title: 'Скачайте результат',
-    description: 'Отредактируйте в canvas-редакторе и скачайте готовое фото',
-  },
+const steps: Step[] = [
+  { title: 'Загрузите фото', description: 'Сфотографуйте товар на телефон и загрузите в сервис' },
+  { title: 'AI обработает', description: 'Нейросеть удалит фон и создаст профессиональный интерьер' },
+  { title: 'Скачайте результат', description: 'Отредактируйте в canvas-редакторе и скачайте готовое фото' },
 ];
 
-const plans = [
-  {
-    name: 'Бесплатный',
-    price: '0',
-    credits: '10',
-    cta: 'Начать',
-    popular: false,
-    features: ['10 AI-обработок', 'Удаление фона', '3 стиля интерьера', 'Экспорт PNG'],
-  },
-  {
-    name: 'Стартовый',
-    price: '499',
-    credits: '100',
-    cta: 'Выбрать',
-    popular: false,
-    features: ['100 AI-обработок', 'Все стили интерьера', 'Пакетная обработка', 'Приоритетная очередь'],
-  },
-  {
-    name: 'Про',
-    price: '1 499',
-    credits: '500',
-    cta: 'Выбрать',
-    popular: true,
-    features: ['500 AI-обработок', 'Кастомные промпты', 'Batch-режим', 'Приоритетная поддержка', 'API доступ'],
-  },
-  {
-    name: 'Бизнес',
-    price: '2 999',
-    credits: '∞',
-    cta: 'Связаться',
-    popular: false,
-    features: ['Безлимитные обработки', 'Персональный менеджер', 'SLA 99.9%', 'Интеграция с WB/Ozon', 'Белая метка'],
-  },
+const plans: Plan[] = [
+  { name: 'Бесплатный', price: '0', credits: '10', cta: 'Начать', popular: false, features: ['10 AI-обработок', 'Удаление фона', '3 стиля интерьера', 'Экспорт PNG'] },
+  { name: 'Стартовый', price: '499', credits: '100', cta: 'Выбрать', popular: false, features: ['100 AI-обработок', 'Все стили интерьера', 'Пакетная обработка', 'Приоритетная очередь'] },
+  { name: 'Про', price: '1 499', credits: '500', cta: 'Выбрать', popular: true, features: ['500 AI-обработок', 'Кастомные промпты', 'Batch-режим', 'Приоритетная поддержка', 'API доступ'] },
+  { name: 'Бизнес', price: '2 999', credits: '∞', cta: 'Связаться', popular: false, features: ['Безлимитные обработки', 'Персональный менеджер', 'SLA 99.9%', 'Интеграция с WB/Ozon', 'Белая метка'] },
 ];
 
-const faqs = ref([
-  {
-    question: 'Какие фото подходят для обработки?',
-    answer: 'Любые фото товаров: ковры, декор, посуда, одежда, обувь. Рекомендуем делать фото при хорошем освещении на простом фоне. Форматы: PNG, JPG до 20MB.',
-    open: false,
-  },
-  {
-    question: 'Сколько времени занимает обработка?',
-    answer: 'Удаление фона: 5-10 секунд. Генерация AI-фона: 15-30 секунд. Пакетная обработка 10 фото: 2-3 минуты.',
-    open: false,
-  },
-  {
-    question: 'Можно ли использовать результаты коммерчески?',
-    answer: 'Да, все сгенерированные изображения принадлежат вам. Вы можете свободно использовать их для карточек товаров на Wildberries, Ozon и других площадках.',
-    open: false,
-  },
-  {
-    question: 'Какие стили интерьера доступны?',
-    answer: 'Скандинавский, лофт, минимализм, классический, бохо, японский, ар-деко. Также вы можете описать желаемый стиль текстом — AI создаст сцену по вашему описанию.',
-    open: false,
-  },
-  {
-    question: 'Есть ли пробный период?',
-    answer: 'Да, при регистрации вы получаете 10 бесплатных кредитов на обработку. Этого достаточно для тестирования всех возможностей сервиса.',
-    open: false,
-  },
+const faqs = ref<Faq[]>([
+  { question: 'Какие фото подходят для обработки?', answer: 'Любые фото товаров: ковры, декор, посуда, одежда, обувь. Рекомендуем делать фото при хорошем освещении на простом фоне. Форматы: PNG, JPG до 20MB.', open: false },
+  { question: 'Сколько времени занимает обработка?', answer: 'Удаление фона: 5-10 секунд. Генерация AI-фона: 15-30 секунд. Пакетная обработка 10 фото: 2-3 минуты.', open: false },
+  { question: 'Можно ли использовать результаты коммерчески?', answer: 'Да, все сгенерированные изображения принадлежат вам. Вы можете свободно использовать их для карточек товаров на Wildberries, Ozon и других площадках.', open: false },
+  { question: 'Какие стили интерьера доступны?', answer: 'Скандинавский, лофт, минимализм, классический, бохо, японский, ар-деко. Также вы можете описать желаемый стиль текстом — AI создаст сцену по вашему описанию.', open: false },
+  { question: 'Есть ли пробный период?', answer: 'Да, при регистрации вы получаете 10 бесплатных кредитов на обработку. Этого достаточно для тестирования всех возможностей сервиса.', open: false },
 ]);
 
-function toggleFaq(index) {
+function toggleFaq(index: number): void {
   faqs.value[index].open = !faqs.value[index].open;
 }
 
@@ -450,7 +392,6 @@ onMounted(() => {
 
   $gsap.registerPlugin($ScrollTrigger);
 
-  // Hero animations
   const heroTl = $gsap.timeline();
   heroTl
     .from(heroTitle.value, { y: 40, opacity: 0, duration: 0.8, ease: 'power3.out' })
@@ -458,7 +399,6 @@ onMounted(() => {
     .from(heroCta.value, { y: 20, opacity: 0, duration: 0.6, ease: 'power3.out' }, '-=0.3')
     .from(heroStats.value, { y: 20, opacity: 0, duration: 0.6, ease: 'power3.out' }, '-=0.2');
 
-  // Scroll animations
   const sections = [
     { trigger: beforeAfterTitle.value, elements: [beforeAfterTitle.value, beforeAfterGrid.value] },
     { trigger: featuresTitle.value, elements: [featuresTitle.value, featuresGrid.value] },

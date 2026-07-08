@@ -26,61 +26,30 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  selected: Object,
-});
+<script setup lang="ts">
+export interface InfographicTemplate {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  description: string;
+  text: string;
+}
 
-defineEmits(['select']);
+defineProps<{
+  selected?: InfographicTemplate;
+}>();
 
-const templates = [
-  {
-    id: 'handmade',
-    name: 'Ручная работа',
-    icon: '✋',
-    color: '#8b5cf6',
-    description: 'Акцент на ручном изготовлении',
-    text: 'РУЧНАЯ РАБОТА',
-  },
-  {
-    id: 'eco',
-    name: 'Эко-материал',
-    icon: '🌿',
-    color: '#10b981',
-    description: '100% натуральные материалы',
-    text: '100% ЭКО',
-  },
-  {
-    id: 'new',
-    name: 'Новинка',
-    icon: '✨',
-    color: '#f59e0b',
-    description: 'Плашка "Новинка"',
-    text: 'НОВИНКА',
-  },
-  {
-    id: 'hit',
-    name: 'Хит продаж',
-    icon: '🔥',
-    color: '#ef4444',
-    description: 'Плашка "Хит продаж"',
-    text: 'ХИТ ПРОДАЖ',
-  },
-  {
-    id: 'sale',
-    name: 'Скидка',
-    icon: '💰',
-    color: '#ec4899',
-    description: 'Процент скидки',
-    text: '-30%',
-  },
-  {
-    id: 'quality',
-    name: 'Качество',
-    icon: '⭐',
-    color: '#06b6d4',
-    description: 'Гарантия качества',
-    text: 'ПРЕМИУМ',
-  },
+defineEmits<{
+  (e: 'select', template: InfographicTemplate): void;
+}>();
+
+const templates: InfographicTemplate[] = [
+  { id: 'handmade', name: 'Ручная работа', icon: '✋', color: '#8b5cf6', description: 'Акцент на ручном изготовлении', text: 'РУЧНАЯ РАБОТА' },
+  { id: 'eco', name: 'Эко-материал', icon: '🌿', color: '#10b981', description: '100% натуральные материалы', text: '100% ЭКО' },
+  { id: 'new', name: 'Новинка', icon: '✨', color: '#f59e0b', description: 'Плашка "Новинка"', text: 'НОВИНКА' },
+  { id: 'hit', name: 'Хит продаж', icon: '🔥', color: '#ef4444', description: 'Плашка "Хит продаж"', text: 'ХИТ ПРОДАЖ' },
+  { id: 'sale', name: 'Скидка', icon: '💰', color: '#ec4899', description: 'Процент скидки', text: '-30%' },
+  { id: 'quality', name: 'Качество', icon: '⭐', color: '#06b6d4', description: 'Гарантия качества', text: 'ПРЕМИУМ' },
 ];
 </script>

@@ -18,33 +18,15 @@
         <form @submit.prevent="handleRegister" class="space-y-5">
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Имя</label>
-            <input
-              v-model="form.name"
-              type="text"
-              placeholder="Ваше имя"
-              class="input"
-            />
+            <input v-model="form.name" type="text" placeholder="Ваше имя" class="input" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
-            <input
-              v-model="form.email"
-              type="email"
-              required
-              placeholder="you@example.com"
-              class="input"
-            />
+            <input v-model="form.email" type="email" required placeholder="you@example.com" class="input" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Пароль</label>
-            <input
-              v-model="form.password"
-              type="password"
-              required
-              minlength="6"
-              placeholder="Минимум 6 символов"
-              class="input"
-            />
+            <input v-model="form.password" type="password" required minlength="6" placeholder="Минимум 6 символов" class="input" />
           </div>
 
           <div class="flex items-start gap-3 p-3 rounded-xl bg-brand-500/5 border border-brand-500/10">
@@ -64,14 +46,14 @@
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
           >
-            <div v-if="error" class="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
+            <div v-if="authForm.error" class="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
               <div class="flex items-start gap-3">
                 <svg class="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm text-red-300 font-medium">{{ error }}</p>
-                  <p v-if="errorCode === 'BAD_REQUEST'" class="text-xs text-red-400/70 mt-1">
+                  <p class="text-sm text-red-300 font-medium">{{ authForm.error }}</p>
+                  <p v-if="authForm.errorCode === 'BAD_REQUEST'" class="text-xs text-red-400/70 mt-1">
                     <NuxtLink to="/auth/login" class="underline hover:text-red-300 transition-colors">Войти в существующий аккаунт</NuxtLink>
                   </p>
                 </div>
@@ -94,14 +76,10 @@
             </div>
           </Transition>
 
-          <button
-            type="submit"
-            :disabled="loading || !!success"
-            class="btn-primary w-full py-3.5"
-          >
-            <svg v-if="loading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <button type="submit" :disabled="authForm.loading || !!success" class="btn-primary w-full py-3.5">
+            <svg v-if="authForm.loading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             <span v-else>Зарегистрироваться</span>
           </button>
@@ -118,50 +96,17 @@
   </div>
 </template>
 
-<script setup>
-const api = useApi();
-const authStore = useAuthStore();
-const router = useRouter();
+<script setup lang="ts">
+const authForm = useAuthForm();
 
-const form = reactive({ name: '', email: '', password: '' });
-const error = ref('');
-const errorCode = ref('');
-const success = ref('');
-const loading = ref(false);
+const form = reactive<{ name: string; email: string; password: string }>({ name: '', email: '', password: '' });
+const success = ref<string>('');
 
-function resolveError(e) {
-  const status = e.response?.status;
-  const serverMsg = e.response?.data?.message;
-  const code = e.response?.data?.code;
-
-  if (status === 400 && code === 'BAD_REQUEST') {
-    return { message: serverMsg || 'Некорректные данные', code };
-  }
-  if (status === 429) {
-    return { message: 'Слишком много попыток. Подождите минуту и попробуйте снова.', code: 'RATE_LIMIT' };
-  }
-  if (!e.response) {
-    return { message: 'Сервер недоступен. Проверьте соединение с интернетом.', code: 'NETWORK' };
-  }
-  return { message: serverMsg || 'Произошла ошибка. Попробуйте ещё раз.', code: code || 'UNKNOWN' };
-}
-
-async function handleRegister() {
-  loading.value = true;
-  error.value = '';
-  errorCode.value = '';
+async function handleRegister(): Promise<void> {
   success.value = '';
-  try {
-    const { data } = await api.post('/auth/register', form);
-    authStore.login(data.user, data.token, data.refreshToken);
-    success.value = 'Аккаунт создан! Переход в редактор...';
-    router.push('/editor');
-  } catch (e) {
-    const resolved = resolveError(e);
-    error.value = resolved.message;
-    errorCode.value = resolved.code;
-  } finally {
-    loading.value = false;
+  const result = await authForm.register(form.name, form.email, form.password);
+  if (result.success) {
+    success.value = result.message ?? 'Аккаунт создан!';
   }
 }
 </script>

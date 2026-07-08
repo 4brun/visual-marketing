@@ -33,7 +33,7 @@
       <div class="flex items-center justify-between">
         <h4 class="text-sm font-medium text-gray-300">{{ files.length }} файлов</h4>
         <button
-          @click="files = []"
+          @click="clearFiles"
           class="text-xs text-gray-500 hover:text-red-400 transition-colors"
         >
           Очистить
@@ -46,10 +46,7 @@
           :key="index"
           class="relative aspect-square rounded-xl overflow-hidden bg-white/5 group"
         >
-          <img
-            :src="file.preview"
-            class="w-full h-full object-cover"
-          />
+          <img :src="file.preview" class="w-full h-full object-cover" />
           <button
             @click="removeFile(index)"
             class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -64,23 +61,32 @@
   </div>
 </template>
 
-<script setup>
-const emit = defineEmits(['update:files']);
-const fileInput = ref(null);
-const files = ref([]);
+<script setup lang="ts">
+interface FileWithPreview {
+  file: File;
+  preview: string;
+}
 
-function handleDrop(e) {
-  const droppedFiles = Array.from(e.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'));
+const emit = defineEmits<{
+  (e: 'update:files', files: File[]): void;
+}>();
+
+const fileInput = ref<HTMLInputElement | null>(null);
+const files = ref<FileWithPreview[]>([]);
+
+function handleDrop(e: DragEvent): void {
+  const droppedFiles = Array.from(e.dataTransfer?.files ?? []).filter(f => f.type.startsWith('image/'));
   addFiles(droppedFiles);
 }
 
-function handleFiles(e) {
-  const selectedFiles = Array.from(e.target.files || []);
+function handleFiles(e: Event): void {
+  const input = e.target as HTMLInputElement;
+  const selectedFiles = Array.from(input.files ?? []);
   addFiles(selectedFiles);
 }
 
-function addFiles(newFiles) {
-  const withPreviews = newFiles.map(file => ({
+function addFiles(newFiles: File[]): void {
+  const withPreviews: FileWithPreview[] = newFiles.map(file => ({
     file,
     preview: URL.createObjectURL(file),
   }));
@@ -88,9 +94,15 @@ function addFiles(newFiles) {
   emit('update:files', files.value.map(f => f.file));
 }
 
-function removeFile(index) {
+function removeFile(index: number): void {
   URL.revokeObjectURL(files.value[index].preview);
   files.value.splice(index, 1);
   emit('update:files', files.value.map(f => f.file));
+}
+
+function clearFiles(): void {
+  files.value.forEach(f => URL.revokeObjectURL(f.preview));
+  files.value = [];
+  emit('update:files', []);
 }
 </script>

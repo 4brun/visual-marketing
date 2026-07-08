@@ -3,7 +3,7 @@ import * as fabric from 'fabric';
 let canvas: fabric.Canvas | null = null;
 
 export function useCanvas() {
-  function initCanvas(canvasId: string, width: number, height: number) {
+  function initCanvas(canvasId: string, width: number, height: number): fabric.Canvas {
     if (canvas) {
       canvas.dispose();
     }
@@ -16,7 +16,6 @@ export function useCanvas() {
       controlsAboveOverlay: true,
     });
 
-    // Configure default object controls appearance
     fabric.InteractiveFabricObject.prototype.set({
       cornerColor: '#6366f1',
       cornerStrokeColor: '#6366f1',
@@ -30,11 +29,11 @@ export function useCanvas() {
     return canvas;
   }
 
-  function getCanvas() {
+  function getCanvas(): fabric.Canvas | null {
     return canvas;
   }
 
-  async function setBackgroundFromUrl(url: string) {
+  async function setBackgroundFromUrl(url: string): Promise<void> {
     if (!canvas) return;
 
     const img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
@@ -53,7 +52,7 @@ export function useCanvas() {
     canvas.renderAll();
   }
 
-  async function addObjectFromUrl(url: string, options?: { left?: number; top?: number }) {
+  async function addObjectFromUrl(url: string, options?: { left?: number; top?: number }): Promise<fabric.FabricImage | undefined> {
     if (!canvas) return;
 
     const img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
@@ -73,13 +72,12 @@ export function useCanvas() {
     return img;
   }
 
-  async function addImageFromFile(file: File) {
+  async function addImageFromFile(file: File): Promise<fabric.FabricImage | undefined> {
     if (!canvas) return;
 
     const url = URL.createObjectURL(file);
     const img = await fabric.FabricImage.fromURL(url);
 
-    // Scale image to fit canvas
     const scaleX = canvas.width! / img.width!;
     const scaleY = canvas.height! / img.height!;
     const scale = Math.min(scaleX, scaleY, 1);
@@ -101,7 +99,7 @@ export function useCanvas() {
     return img;
   }
 
-  function addText(text: string, options?: { left?: number; top?: number; fontSize?: number; fill?: string }) {
+  function addText(text: string, options?: { left?: number; top?: number; fontSize?: number; fill?: string }): fabric.FabricText | undefined {
     if (!canvas) return;
 
     const textObj = new fabric.FabricText(text, {
@@ -128,14 +126,14 @@ export function useCanvas() {
     return textObj;
   }
 
-  function resize(width: number, height: number) {
+  function resize(width: number, height: number): void {
     if (!canvas) return;
     canvas.setWidth(width);
     canvas.setHeight(height);
     canvas.renderAll();
   }
 
-  function exportToDataURL(format: 'png' | 'jpeg' = 'png', quality = 1): string {
+  function exportToDataURL(format: 'png' | 'jpeg' = 'png', quality: number = 1): string {
     if (!canvas) throw new Error('Canvas not initialized');
     canvas.discardActiveObject();
     canvas.renderAll();
@@ -147,14 +145,14 @@ export function useCanvas() {
     return JSON.stringify(canvas.toJSON());
   }
 
-  function loadFromJSON(json: string) {
+  function loadFromJSON(json: string): void {
     if (!canvas) return;
     canvas.loadFromJSON(json).then(() => {
       canvas!.renderAll();
     });
   }
 
-  function dispose() {
+  function dispose(): void {
     if (canvas) {
       canvas.dispose();
       canvas = null;

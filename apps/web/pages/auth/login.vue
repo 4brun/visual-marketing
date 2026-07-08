@@ -18,23 +18,11 @@
         <form @submit.prevent="handleLogin" class="space-y-5">
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
-            <input
-              v-model="form.email"
-              type="email"
-              required
-              placeholder="you@example.com"
-              class="input"
-            />
+            <input v-model="form.email" type="email" required placeholder="you@example.com" class="input" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Пароль</label>
-            <input
-              v-model="form.password"
-              type="password"
-              required
-              placeholder="••••••••"
-              class="input"
-            />
+            <input v-model="form.password" type="password" required placeholder="••••••••" class="input" />
           </div>
 
           <Transition
@@ -45,24 +33,20 @@
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
           >
-            <div v-if="error" class="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
+            <div v-if="authForm.error" class="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
               <div class="flex items-start gap-3">
                 <svg class="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                <p class="text-sm text-red-300">{{ error }}</p>
+                <p class="text-sm text-red-300">{{ authForm.error }}</p>
               </div>
             </div>
           </Transition>
 
-          <button
-            type="submit"
-            :disabled="loading"
-            class="btn-primary w-full py-3.5"
-          >
-            <svg v-if="loading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <button type="submit" :disabled="authForm.loading" class="btn-primary w-full py-3.5">
+            <svg v-if="authForm.loading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             <span v-else>Войти</span>
           </button>
@@ -79,35 +63,12 @@
   </div>
 </template>
 
-<script setup>
-const api = useApi();
-const authStore = useAuthStore();
-const router = useRouter();
+<script setup lang="ts">
+const authForm = useAuthForm();
 
-const form = reactive({ email: '', password: '' });
-const error = ref('');
-const loading = ref(false);
+const form = reactive<{ email: string; password: string }>({ email: '', password: '' });
 
-function resolveError(e) {
-  const status = e.response?.status;
-  const serverMsg = e.response?.data?.message;
-  if (status === 401) return serverMsg || 'Неверный email или пароль';
-  if (status === 429) return 'Слишком много попыток. Подождите минуту.';
-  if (!e.response) return 'Сервер недоступен. Проверьте соединение.';
-  return serverMsg || 'Ошибка входа. Попробуйте ещё раз.';
-}
-
-async function handleLogin() {
-  loading.value = true;
-  error.value = '';
-  try {
-    const { data } = await api.post('/auth/login', form);
-    authStore.login(data.user, data.token, data.refreshToken);
-    router.push('/editor');
-  } catch (e) {
-    error.value = resolveError(e);
-  } finally {
-    loading.value = false;
-  }
+async function handleLogin(): Promise<void> {
+  await authForm.login(form.email, form.password);
 }
 </script>

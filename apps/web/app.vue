@@ -4,11 +4,10 @@
   </NuxtLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const authStore = useAuthStore();
 authStore.loadFromStorage();
 
-// Fetch fresh user data if tokens exist
 if (authStore.isAuthenticated) {
   authStore.fetchUser();
 }

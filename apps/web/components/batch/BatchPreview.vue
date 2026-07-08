@@ -15,11 +15,7 @@
         class="relative aspect-square rounded-xl overflow-hidden bg-white/5 group"
       >
         <template v-if="result.status === 'completed'">
-          <img
-            :src="result.url"
-            class="w-full h-full object-cover"
-            loading="lazy"
-          />
+          <img :src="result.url" class="w-full h-full object-cover" loading="lazy" />
           <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
             <div class="absolute bottom-2 left-2 right-2 flex gap-1">
               <a
@@ -37,8 +33,8 @@
           <div class="absolute inset-0 flex items-center justify-center bg-white/5">
             <div class="text-center">
               <svg class="w-8 h-8 mx-auto text-brand-400 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
               <p class="text-xs text-gray-400 mt-2">Обработка...</p>
             </div>
@@ -57,21 +53,27 @@
         </template>
 
         <template v-else>
-          <div class="absolute inset-0 skeleton"></div>
+          <div class="absolute inset-0 skeleton" />
         </template>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  results: {
-    type: Array,
-    default: () => [],
-  },
+<script setup lang="ts">
+type BatchResultStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+interface BatchResult {
+  url: string;
+  status: BatchResultStatus;
+}
+
+const props = withDefaults(defineProps<{
+  results?: BatchResult[];
+}>(), {
+  results: () => [],
 });
 
-const succeeded = computed(() => props.results.filter(r => r.status === 'completed').length);
-const total = computed(() => props.results.length);
+const succeeded = computed<number>(() => props.results.filter(r => r.status === 'completed').length);
+const total = computed<number>(() => props.results.length);
 </script>

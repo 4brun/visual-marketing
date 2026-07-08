@@ -214,27 +214,26 @@
   </div>
 </template>
 
-<script setup>
-definePageMeta({ layout: 'editor' });
-
+<script setup lang="ts">
 import { RESIZE_PRESETS } from '@visual-marketing/shared';
+import type { JobStatus } from '@visual-marketing/shared';
+
+definePageMeta({ layout: 'editor' });
 
 const api = useApi();
 const canvas = useCanvas();
 const editorStore = useEditorStore();
 
-const fileInput = ref(null);
-const canvasRef = ref(null);
-const canvasWrapperRef = ref(null);
-const prompt = ref('Современная минималистичная гостиная, мягкий естественный свет');
-const overlayText = ref('');
-const textColor = ref('#ffffff');
-const selectedPreset = ref('WILDBERRIES_3_4');
-const removingBg = ref(false);
-const generating = ref(false);
-const composing = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
+const prompt = ref<string>('Современная минималистичная гостиная, мягкий естественный свет');
+const overlayText = ref<string>('');
+const textColor = ref<string>('#ffffff');
+const selectedPreset = ref<string>('WILDBERRIES_3_4');
+const removingBg = ref<boolean>(false);
+const generating = ref<boolean>(false);
+const composing = ref<boolean>(false);
 
-const quickStyles = [
+const quickStyles: string[] = [
   'Скандинавская гостиная, мягкий свет',
   'Лофт с кирпичной стеной, тёплый свет',
   'Минималистичная спальня, белые стены',
@@ -242,8 +241,6 @@ const quickStyles = [
 ];
 
 onMounted(() => {
-  // Initialize canvas with a reasonable default size
-  // It will be resized when an image is loaded
   canvas.initCanvas('main-canvas', 600, 800);
 });
 
@@ -251,25 +248,24 @@ onUnmounted(() => {
   canvas.dispose();
 });
 
-function handleDrop(e) {
+function handleDrop(e: DragEvent): void {
   const file = e.dataTransfer?.files?.[0];
   if (file) uploadFile(file);
 }
 
-async function handleUpload(e) {
-  const file = e.target.files?.[0];
+function handleUpload(e: Event): void {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
   if (file) uploadFile(file);
 }
 
-async function uploadFile(file) {
-  // Show the image on canvas immediately
+async function uploadFile(file: File): Promise<void> {
   await canvas.addImageFromFile(file);
 
-  // Then upload to server in background
   let projectId = editorStore.projectId;
   if (!projectId) {
     try {
-      const { data } = await api.post('/projects', { name: 'Новый проект' });
+      const { data } = await api.post<{ project: { id: string } }>('/projects', { name: 'Новый проект' });
       projectId = data.project.id;
       editorStore.setProject(projectId);
     } catch (e) {
@@ -283,30 +279,30 @@ async function uploadFile(file) {
   formData.append('projectId', projectId);
 
   try {
-    const { data } = await api.post('/images/upload', formData, {
+    const { data } = await api.post<{ imageId: string; width: number; height: number }>('/images/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    editorStore.setCurrentImage({ id: data.imageId, width: data.width, height: data.height, status: 'PENDING' });
+    editorStore.setCurrentImage({ id: data.imageId, width: data.width, height: data.height, status: 'PENDING', originalUrl: '', projectId: projectId! });
   } catch (e) {
     console.error('Failed to upload image', e);
   }
 }
 
-async function removeBackground() {
+async function removeBackground(): Promise<void> {
   removingBg.value = true;
   try {
-    await api.post(`/images/${editorStore.currentImage.id}/remove-bg`);
+    await api.post(`/images/${editorStore.currentImage!.id}/remove-bg`);
     pollStatus();
   } finally {
     removingBg.value = false;
   }
 }
 
-async function generateScene() {
+async function generateScene(): Promise<void> {
   generating.value = true;
   try {
     const preset = RESIZE_PRESETS[selectedPreset.value];
-    await api.post(`/images/${editorStore.currentImage.id}/generate-scene`, {
+    await api.post(`/images/${editorStore.currentImage!.id}/generate-scene`, {
       prompt: prompt.value,
       width: preset.width,
       height: preset.height,
@@ -317,10 +313,10 @@ async function generateScene() {
   }
 }
 
-async function pollStatus() {
+function pollStatus(): void {
   const interval = setInterval(async () => {
-    const { data } = await api.get(`/images/${editorStore.currentImage.id}/status`);
-    editorStore.updateImageStatus(editorStore.currentImage.id, data.status, {
+    const { data } = await api.get<{ status: JobStatus; cutoutUrl?: string; backgroundUrl?: string }>(`/images/${editorStore.currentImage!.id}/status`);
+    editorStore.updateImageStatus(editorStore.currentImage!.id, data.status, {
       cutoutUrl: data.cutoutUrl,
       backgroundUrl: data.backgroundUrl,
     });
@@ -331,10 +327,10 @@ async function pollStatus() {
   }, 2000);
 }
 
-async function composeImage() {
+async function composeImage(): Promise<void> {
   composing.value = true;
   try {
-    const { data } = await api.get(`/images/${editorStore.currentImage.id}`);
+    const { data } = await api.get<{ urls: { background: string; cutout: string } }>(`/images/${editorStore.currentImage!.id}`);
     await canvas.setBackgroundFromUrl(data.urls.background);
     await canvas.addObjectFromUrl(data.urls.cutout);
   } finally {
@@ -342,7 +338,7 @@ async function composeImage() {
   }
 }
 
-function applyPreset(key) {
+function applyPreset(key: string): void {
   const preset = RESIZE_PRESETS[key];
   if (preset.width && preset.height) {
     canvas.resize(preset.width, preset.height);
@@ -351,13 +347,13 @@ function applyPreset(key) {
   }
 }
 
-function addTextOverlay() {
+function addTextOverlay(): void {
   if (overlayText.value) {
     canvas.addText(overlayText.value, { fill: textColor.value });
   }
 }
 
-function exportImage() {
+function exportImage(): void {
   const dataUrl = canvas.exportToDataURL();
   const link = document.createElement('a');
   link.download = `visual-marketing-${Date.now()}.png`;

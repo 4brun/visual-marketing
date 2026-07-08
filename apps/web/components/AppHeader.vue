@@ -9,7 +9,6 @@
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-14 lg:h-16">
-        <!-- Logo -->
         <NuxtLink to="/" class="flex items-center gap-3 group shrink-0">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent-cyan flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:shadow-glow">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -19,7 +18,6 @@
           <span class="text-lg font-bold gradient-text hidden sm:block">VisualMarketing</span>
         </NuxtLink>
 
-        <!-- Desktop Nav -->
         <nav class="hidden md:flex items-center gap-1">
           <NuxtLink
             v-for="link in navLinks"
@@ -40,19 +38,16 @@
           </NuxtLink>
         </nav>
 
-        <!-- Right Section -->
         <div class="flex items-center gap-2 sm:gap-3">
           <template v-if="authStore.isAuthenticated">
-            <!-- Credits Badge -->
             <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full glass cursor-default">
               <svg class="w-3.5 h-3.5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
               <span class="text-xs font-semibold text-gray-200">{{ authStore.user?.creditsLeft }}</span>
-              <span class="text-xs text-gray-500">/ {{ maxCredits }}</span>
+              <span class="text-xs text-gray-500">/ {{ authStore.maxCredits }}</span>
             </div>
 
-            <!-- New Project Button -->
             <NuxtLink
               to="/editor"
               class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 hover:bg-brand-500 text-white transition-all duration-300 hover:shadow-glow"
@@ -63,14 +58,13 @@
               Новый проект
             </NuxtLink>
 
-            <!-- User Menu -->
             <div class="relative" ref="userMenuRef">
               <button
                 @click="userMenuOpen = !userMenuOpen"
                 class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/5 transition-all duration-300"
               >
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500/80 to-accent-cyan/80 flex items-center justify-center text-white text-sm font-bold">
-                  {{ userInitial }}
+                  {{ authStore.userInitial }}
                 </div>
                 <svg
                   class="w-4 h-4 text-gray-400 transition-transform duration-200 hidden sm:block"
@@ -81,7 +75,6 @@
                 </svg>
               </button>
 
-              <!-- Dropdown -->
               <Transition
                 enter-active-class="transition-all duration-200 ease-out"
                 enter-from-class="opacity-0 scale-95 -translate-y-1"
@@ -94,21 +87,16 @@
                   v-if="userMenuOpen"
                   class="absolute right-0 top-full mt-2 w-64 rounded-2xl glass-strong border border-white/10 shadow-xl shadow-black/30 overflow-hidden"
                 >
-                  <!-- User Info -->
                   <div class="px-4 py-3 border-b border-white/5">
                     <p class="text-sm font-semibold text-white truncate">{{ authStore.user?.name || 'Пользователь' }}</p>
                     <p class="text-xs text-gray-400 truncate mt-0.5">{{ authStore.user?.email }}</p>
                   </div>
 
-                  <!-- Plan & Credits -->
                   <div class="px-4 py-3 border-b border-white/5">
                     <div class="flex items-center justify-between mb-2">
                       <span class="text-xs font-medium text-gray-400">Тариф</span>
-                      <span :class="[
-                        'px-2 py-0.5 rounded-md text-xs font-semibold',
-                        planStyles[authStore.user?.plan || 'FREE'],
-                      ]">
-                        {{ planNames[authStore.user?.plan || 'FREE'] }}
+                      <span :class="['px-2 py-0.5 rounded-md text-xs font-semibold', authStore.planStyle]">
+                        {{ authStore.planName }}
                       </span>
                     </div>
                     <div class="w-full bg-white/5 rounded-full h-1.5">
@@ -122,7 +110,6 @@
                     </p>
                   </div>
 
-                  <!-- Menu Items -->
                   <div class="py-1">
                     <NuxtLink
                       to="/editor"
@@ -146,7 +133,6 @@
                     </NuxtLink>
                   </div>
 
-                  <!-- Logout -->
                   <div class="border-t border-white/5 py-1">
                     <button
                       @click="handleLogout"
@@ -170,15 +156,11 @@
             >
               Войти
             </NuxtLink>
-            <NuxtLink
-              to="/auth/register"
-              class="btn-primary text-sm"
-            >
+            <NuxtLink to="/auth/register" class="btn-primary text-sm">
               Начать бесплатно
             </NuxtLink>
           </template>
 
-          <!-- Mobile Menu Toggle -->
           <button
             @click="mobileMenuOpen = !mobileMenuOpen"
             class="md:hidden p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"
@@ -194,7 +176,6 @@
       </div>
     </div>
 
-    <!-- Mobile Menu -->
     <Transition
       enter-active-class="transition-all duration-300 ease-out"
       enter-from-class="opacity-0 -translate-y-2"
@@ -244,46 +225,28 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
-const scrolled = ref(false);
-const mobileMenuOpen = ref(false);
-const userMenuOpen = ref(false);
-const userMenuRef = ref(null);
+const scrolled = ref<boolean>(false);
+const mobileMenuOpen = ref<boolean>(false);
+const userMenuOpen = ref<boolean>(false);
+const userMenuRef = ref<HTMLElement | null>(null);
 
-const planNames = {
-  FREE: 'Бесплатный',
-  STARTER: 'Стартовый',
-  PRO: 'Про',
-  BUSINESS: 'Бизнес',
-};
-
-const planStyles = {
-  FREE: 'bg-gray-500/20 text-gray-300',
-  STARTER: 'bg-blue-500/20 text-blue-300',
-  PRO: 'bg-brand-500/20 text-brand-300',
-  BUSINESS: 'bg-amber-500/20 text-amber-300',
-};
-
-const creditsMap = { FREE: 10, STARTER: 100, PRO: 500, BUSINESS: 999 };
-
-const maxCredits = computed(() => creditsMap[authStore.user?.plan || 'FREE'] || 10);
-
-const creditsPercent = computed(() => {
-  const left = authStore.user?.creditsLeft || 0;
-  const max = maxCredits.value;
+const creditsPercent = computed<number>(() => {
+  const left = authStore.user?.creditsLeft ?? 0;
+  const max = authStore.maxCredits;
   return Math.min(100, Math.round((left / max) * 100));
 });
 
-const userInitial = computed(() => {
-  const name = authStore.user?.name || authStore.user?.email || '?';
-  return name.charAt(0).toUpperCase();
-});
+interface NavLink {
+  to: string;
+  label: string;
+}
 
-const navLinks = computed(() => {
+const navLinks = computed<NavLink[]>(() => {
   if (authStore.isAuthenticated) {
     return [
       { to: '/editor', label: 'Редактор' },
@@ -297,26 +260,26 @@ const navLinks = computed(() => {
   ];
 });
 
-function isActive(to) {
+function isActive(to: string): boolean {
   if (to.startsWith('/#')) return false;
   return route.path === to;
 }
 
-function handleLogout() {
+function handleLogout(): void {
   userMenuOpen.value = false;
   mobileMenuOpen.value = false;
   authStore.logout();
   router.push('/');
 }
 
-function handleClickOutside(e) {
-  if (userMenuRef.value && !userMenuRef.value.contains(e.target)) {
+function handleClickOutside(e: MouseEvent): void {
+  if (userMenuRef.value && !userMenuRef.value.contains(e.target as Node)) {
     userMenuOpen.value = false;
   }
 }
 
 onMounted(() => {
-  const handleScroll = () => {
+  const handleScroll = (): void => {
     scrolled.value = window.scrollY > 20;
   };
   window.addEventListener('scroll', handleScroll, { passive: true });
