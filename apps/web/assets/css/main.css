@@ -133,21 +133,6 @@
     transform: translateY(-4px);
   }
 
-  .popular-card {
-    border-color: rgba(124, 58, 237, 0.3);
-  }
-
-  .popular-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #7c3aed, #06b6d4);
-    border-radius: 1rem 1rem 0 0;
-  }
-
   .input {
     @apply w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 transition-all duration-300;
     background: rgba(255, 255, 255, 0.03);

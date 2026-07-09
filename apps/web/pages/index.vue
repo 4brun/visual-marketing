@@ -192,7 +192,7 @@
             v-for="(plan, index) in plans"
             :key="index"
             class="card relative"
-            :class="plan.popular ? 'shadow-glow popular-card' : ''"
+            :class="plan.popular ? 'shadow-glow border-brand-500/40' : ''"
           >
             <div class="text-center">
               <h3 class="text-lg font-semibold mb-2">{{ plan.name }}</h3>
