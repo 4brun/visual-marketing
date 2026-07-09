@@ -63,7 +63,7 @@
         </div>
 
         <div class="flex items-center justify-between mb-2">
-          <div class="flex-1 min-w-0">
+          <div class="flex-1 min-w-0 overflow-hidden">
             <input
               v-if="editingProjectId === project.id"
               ref="renameInput"

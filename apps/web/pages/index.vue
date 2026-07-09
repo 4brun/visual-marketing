@@ -192,7 +192,7 @@
             v-for="(plan, index) in plans"
             :key="index"
             class="card relative"
-            :class="plan.popular ? 'border-brand-500/30 shadow-glow' : ''"
+            :class="plan.popular ? 'border-brand-500/30 shadow-glow overflow-visible' : ''"
           >
             <div
               v-if="plan.popular"
