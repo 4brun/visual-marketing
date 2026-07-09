@@ -63,12 +63,13 @@
         </div>
 
         <div class="flex items-center justify-between mb-2">
-          <div class="flex-1 min-w-0 overflow-hidden">
+          <div class="flex-1 min-w-0">
             <input
               v-if="editingProjectId === project.id"
               ref="renameInput"
               v-model="editingName"
-              class="w-full px-2 py-1 text-sm font-semibold bg-white/5 border border-brand-500/30 rounded focus:outline-none focus:border-brand-500"
+              class="w-full text-sm font-semibold bg-transparent border-b border-brand-500 focus:outline-none py-0.5"
+              style="margin: 0; padding: 0.125rem 0;"
               @keyup.enter="saveRename(project.id)"
               @keyup.escape="cancelRename"
               @blur="saveRename(project.id)"
@@ -199,7 +200,7 @@ async function saveRename(id: string): Promise<void> {
     return;
   }
   try {
-    await api.patch(`/projects/${id}`, { name: editingName.value.trim() });
+    await api.put(`/projects/${id}`, { name: editingName.value.trim() });
     const project = projects.value.find(p => p.id === id);
     if (project) {
       project.name = editingName.value.trim();
