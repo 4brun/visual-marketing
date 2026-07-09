@@ -36,7 +36,7 @@
       <div
         v-for="project in projects"
         :key="project.id"
-        class="card group"
+        class="card group overflow-hidden"
       >
         <div
           class="aspect-[4/3] rounded-xl overflow-hidden bg-white/5 mb-4"
