@@ -258,18 +258,16 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <Transition
-              enter-active-class="transition-all duration-300 ease-out"
-              enter-from-class="opacity-0 max-h-0"
-              enter-to-class="opacity-100 max-h-40"
-              leave-active-class="transition-all duration-200 ease-in"
-              leave-from-class="opacity-100 max-h-40"
-              leave-to-class="opacity-0 max-h-0"
+            <div
+              class="grid transition-all duration-300 ease-out"
+              :style="{ gridTemplateRows: faq.open ? '1fr' : '0fr' }"
             >
-              <div v-if="faq.open" class="px-5 pb-5 overflow-hidden">
-                <p class="text-sm text-gray-400 leading-relaxed">{{ faq.answer }}</p>
+              <div class="overflow-hidden">
+                <div class="px-5 pb-5">
+                  <p class="text-sm text-gray-400 leading-relaxed">{{ faq.answer }}</p>
+                </div>
               </div>
-            </Transition>
+            </div>
           </div>
         </div>
       </div>
