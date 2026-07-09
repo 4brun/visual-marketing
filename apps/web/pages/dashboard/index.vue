@@ -37,9 +37,11 @@
         v-for="project in projects"
         :key="project.id"
         class="card group cursor-pointer"
-        @click="openProject(project.id)"
       >
-        <div class="aspect-[4/3] rounded-xl overflow-hidden bg-white/5 mb-4">
+        <div
+          class="aspect-[4/3] rounded-xl overflow-hidden bg-white/5 mb-4"
+          @click="openProject(project.id)"
+        >
           <div v-if="project.images?.length" class="w-full h-full">
             <img
               v-if="project.images[0]?.cutoutUrl"
@@ -59,18 +61,85 @@
             </svg>
           </div>
         </div>
-        <div class="flex items-start justify-between">
-          <div>
-            <h3 class="font-semibold group-hover:text-white transition-colors">{{ project.name }}</h3>
-            <p class="text-sm text-gray-400 mt-1">{{ project.images?.length || 0 }} изображений</p>
+
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex-1 min-w-0">
+            <input
+              v-if="editingProjectId === project.id"
+              v-model="editingName"
+              class="w-full px-2 py-1 text-sm font-semibold bg-white/5 border border-brand-500/30 rounded focus:outline-none focus:border-brand-500"
+              @keyup.enter="saveRename(project.id)"
+              @keyup.escape="cancelRename"
+              @blur="saveRename(project.id)"
+              autofocus
+            />
+            <h3
+              v-else
+              class="font-semibold truncate group-hover:text-white transition-colors cursor-pointer"
+              @click.stop="startRename(project)"
+            >
+              {{ project.name }}
+            </h3>
           </div>
-          <div class="flex items-center gap-1 text-xs text-gray-500">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            {{ new Date(project.createdAt).toLocaleDateString('ru-RU') }}
+
+          <div class="flex items-center gap-1 ml-2">
+            <button
+              class="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+              @click.stop="startRename(project)"
+              title="Переименовать"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+            <button
+              class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              @click.stop="showDeleteConfirm = project.id"
+              title="Удалить"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           </div>
         </div>
+
+        <p class="text-sm text-gray-400">{{ project.images?.length || 0 }} изображений</p>
+
+        <div class="flex items-center gap-1 text-xs text-gray-500 mt-2">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {{ new Date(project.createdAt).toLocaleDateString('ru-RU') }}
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <Teleport to="body">
+          <div
+            v-if="showDeleteConfirm === project.id"
+            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            @click="showDeleteConfirm = null"
+          >
+            <div class="bg-[#1a1a2e] rounded-2xl p-6 max-w-sm mx-4 border border-white/10" @click.stop>
+              <h3 class="text-lg font-semibold mb-2">Удалить проект?</h3>
+              <p class="text-sm text-gray-400 mb-6">Это действие нельзя отменить. Проект «{{ project.name }}» будет удален навсегда.</p>
+              <div class="flex gap-3 justify-end">
+                <button
+                  class="px-4 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                  @click="showDeleteConfirm = null"
+                >
+                  Отмена
+                </button>
+                <button
+                  class="px-4 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                  @click="deleteProject(project.id)"
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          </div>
+        </Teleport>
       </div>
     </div>
   </div>
@@ -90,6 +159,9 @@ const router = useRouter();
 
 const projects = ref<Project[]>([]);
 const loading = ref<boolean>(true);
+const editingProjectId = ref<string | null>(null);
+const editingName = ref<string>('');
+const showDeleteConfirm = ref<string | null>(null);
 
 onMounted(async () => {
   try {
@@ -104,5 +176,42 @@ onMounted(async () => {
 
 function openProject(id: string): void {
   router.push(`/editor?project=${id}`);
+}
+
+function startRename(project: Project): void {
+  editingProjectId.value = project.id;
+  editingName.value = project.name;
+}
+
+function cancelRename(): void {
+  editingProjectId.value = null;
+  editingName.value = '';
+}
+
+async function saveRename(id: string): Promise<void> {
+  if (!editingName.value.trim()) {
+    cancelRename();
+    return;
+  }
+  try {
+    await api.patch(`/projects/${id}`, { name: editingName.value.trim() });
+    const project = projects.value.find(p => p.id === id);
+    if (project) {
+      project.name = editingName.value.trim();
+    }
+  } catch (e) {
+    console.error('Failed to rename project', e);
+  }
+  cancelRename();
+}
+
+async function deleteProject(id: string): Promise<void> {
+  try {
+    await api.delete(`/projects/${id}`);
+    projects.value = projects.value.filter(p => p.id !== id);
+  } catch (e) {
+    console.error('Failed to delete project', e);
+  }
+  showDeleteConfirm.value = null;
 }
 </script>
