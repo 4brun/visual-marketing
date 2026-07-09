@@ -66,7 +66,7 @@
         <div class="flex items-center justify-between mb-2" style="height: 1.5rem;">
           <div class="flex-1 min-w-0 overflow-hidden">
             <input
-              v-if="editingProjectId === project.id"
+              v-show="editingProjectId === project.id"
               ref="renameInput"
               v-model="editingName"
               class="w-full text-sm font-semibold bg-transparent border-b border-brand-500 focus:outline-none leading-6"
@@ -75,7 +75,7 @@
               @blur="saveRename(project.id)"
             />
             <h3
-              v-else
+              v-show="editingProjectId !== project.id"
               class="font-semibold truncate group-hover:text-white transition-colors cursor-pointer leading-6"
               @click.stop="startRename(project)"
             >
