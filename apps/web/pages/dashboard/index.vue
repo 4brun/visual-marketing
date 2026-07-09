@@ -32,7 +32,7 @@
       <NuxtLink to="/editor" class="btn-primary">Открыть редактор</NuxtLink>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" style="grid-auto-flow: dense;">
+    <div v-else style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem;">
       <div
         v-for="project in projects"
         :key="project.id"
@@ -40,7 +40,7 @@
         style="min-width: 0; overflow: hidden;"
       >
         <div
-          class="aspect-[4/3] rounded-xl overflow-hidden bg-white/5 mb-4"
+          style="aspect-ratio: 4/3; border-radius: 0.75rem; overflow: hidden; background: rgba(255,255,255,0.05); margin-bottom: 1rem;"
           @click="openProject(project.id)"
         >
           <div v-if="project.images?.length" class="w-full h-full">
@@ -63,10 +63,10 @@
           </div>
         </div>
 
-        <div class="flex items-center justify-between mb-2" style="height: 1.5rem;">
-          <div class="flex-1 min-w-0" style="position: relative;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; height: 1.5rem; min-width: 0;">
+          <div style="flex: 1; min-width: 0; overflow: hidden; position: relative;">
             <h3
-              class="font-semibold truncate group-hover:text-white transition-colors cursor-pointer leading-6"
+              style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.5rem; cursor: pointer; transition: color 0.3s;"
               :class="editingProjectId === project.id ? 'invisible' : ''"
               @click.stop="startRename(project)"
             >
@@ -76,8 +76,7 @@
               v-if="editingProjectId === project.id"
               ref="renameInput"
               v-model="editingName"
-              class="text-sm font-semibold bg-transparent border-b border-brand-500 focus:outline-none leading-6"
-              style="position: absolute; top: 0; left: 0; right: 0; width: 100%; box-sizing: border-box;"
+              style="position: absolute; top: 0; left: 0; right: 0; width: 100%; box-sizing: border-box; font-size: 0.875rem; font-weight: 600; background: transparent; border: none; border-bottom: 1px solid #7c3aed; outline: none; line-height: 1.5rem; padding: 0;"
               @keyup.enter="saveRename(project.id)"
               @keyup.escape="cancelRename"
               @blur="saveRename(project.id)"
