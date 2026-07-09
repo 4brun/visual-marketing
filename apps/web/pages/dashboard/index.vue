@@ -36,7 +36,7 @@
       <div
         v-for="project in projects"
         :key="project.id"
-        class="card group cursor-pointer"
+        class="card group"
       >
         <div
           class="aspect-[4/3] rounded-xl overflow-hidden bg-white/5 mb-4"
@@ -66,12 +66,12 @@
           <div class="flex-1 min-w-0">
             <input
               v-if="editingProjectId === project.id"
+              ref="renameInput"
               v-model="editingName"
               class="w-full px-2 py-1 text-sm font-semibold bg-white/5 border border-brand-500/30 rounded focus:outline-none focus:border-brand-500"
               @keyup.enter="saveRename(project.id)"
               @keyup.escape="cancelRename"
               @blur="saveRename(project.id)"
-              autofocus
             />
             <h3
               v-else
@@ -112,41 +112,41 @@
           </svg>
           {{ new Date(project.createdAt).toLocaleDateString('ru-RU') }}
         </div>
-
-        <!-- Delete Confirmation Modal -->
-        <Teleport to="body">
-          <div
-            v-if="showDeleteConfirm === project.id"
-            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            @click="showDeleteConfirm = null"
-          >
-            <div class="bg-[#1a1a2e] rounded-2xl p-6 max-w-sm mx-4 border border-white/10" @click.stop>
-              <h3 class="text-lg font-semibold mb-2">Удалить проект?</h3>
-              <p class="text-sm text-gray-400 mb-6">Это действие нельзя отменить. Проект «{{ project.name }}» будет удален навсегда.</p>
-              <div class="flex gap-3 justify-end">
-                <button
-                  class="px-4 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white transition-colors"
-                  @click="showDeleteConfirm = null"
-                >
-                  Отмена
-                </button>
-                <button
-                  class="px-4 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
-                  @click="deleteProject(project.id)"
-                >
-                  Удалить
-                </button>
-              </div>
-            </div>
-          </div>
-        </Teleport>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <Teleport to="body">
+      <div
+        v-if="showDeleteConfirm && projectToDelete"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        @click="showDeleteConfirm = null"
+      >
+        <div class="bg-[#1a1a2e] rounded-2xl p-6 max-w-sm mx-4 border border-white/10" @click.stop>
+          <h3 class="text-lg font-semibold mb-2">Удалить проект?</h3>
+          <p class="text-sm text-gray-400 mb-6">Это действие нельзя отменить. Проект «{{ projectToDelete.name }}» будет удален навсегда.</p>
+          <div class="flex gap-3 justify-end">
+            <button
+              class="px-4 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-white transition-colors"
+              @click="showDeleteConfirm = null"
+            >
+              Отмена
+            </button>
+            <button
+              class="px-4 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+              @click="deleteProject(showDeleteConfirm)"
+            >
+              Удалить
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import type { Project } from '@visual-marketing/shared';
 import { useApi } from '~/composables/useApi';
 import { useRouter } from '#app';
@@ -162,6 +162,9 @@ const loading = ref<boolean>(true);
 const editingProjectId = ref<string | null>(null);
 const editingName = ref<string>('');
 const showDeleteConfirm = ref<string | null>(null);
+const renameInput = ref<HTMLInputElement | null>(null);
+
+const projectToDelete = computed(() => projects.value.find(p => p.id === showDeleteConfirm.value));
 
 onMounted(async () => {
   try {
@@ -181,6 +184,7 @@ function openProject(id: string): void {
 function startRename(project: Project): void {
   editingProjectId.value = project.id;
   editingName.value = project.name;
+  nextTick(() => renameInput.value?.focus());
 }
 
 function cancelRename(): void {
@@ -189,6 +193,7 @@ function cancelRename(): void {
 }
 
 async function saveRename(id: string): Promise<void> {
+  if (editingProjectId.value !== id) return;
   if (!editingName.value.trim()) {
     cancelRename();
     return;
@@ -205,7 +210,8 @@ async function saveRename(id: string): Promise<void> {
   cancelRename();
 }
 
-async function deleteProject(id: string): Promise<void> {
+async function deleteProject(id: string | null): Promise<void> {
+  if (!id) return;
   try {
     await api.delete(`/projects/${id}`);
     projects.value = projects.value.filter(p => p.id !== id);
