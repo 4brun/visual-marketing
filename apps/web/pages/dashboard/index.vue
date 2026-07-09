@@ -64,23 +64,24 @@
         </div>
 
         <div class="flex items-center justify-between mb-2" style="height: 1.5rem;">
-          <div class="flex-1 min-w-0 overflow-hidden">
-            <input
-              v-show="editingProjectId === project.id"
-              ref="renameInput"
-              v-model="editingName"
-              class="w-full text-sm font-semibold bg-transparent border-b border-brand-500 focus:outline-none leading-6"
-              @keyup.enter="saveRename(project.id)"
-              @keyup.escape="cancelRename"
-              @blur="saveRename(project.id)"
-            />
+          <div class="flex-1 min-w-0" style="position: relative;">
             <h3
-              v-show="editingProjectId !== project.id"
               class="font-semibold truncate group-hover:text-white transition-colors cursor-pointer leading-6"
+              :class="editingProjectId === project.id ? 'invisible' : ''"
               @click.stop="startRename(project)"
             >
               {{ project.name }}
             </h3>
+            <input
+              v-if="editingProjectId === project.id"
+              ref="renameInput"
+              v-model="editingName"
+              class="text-sm font-semibold bg-transparent border-b border-brand-500 focus:outline-none leading-6"
+              style="position: absolute; top: 0; left: 0; right: 0; width: 100%; box-sizing: border-box;"
+              @keyup.enter="saveRename(project.id)"
+              @keyup.escape="cancelRename"
+              @blur="saveRename(project.id)"
+            />
           </div>
 
           <div class="flex items-center gap-1 ml-2">
