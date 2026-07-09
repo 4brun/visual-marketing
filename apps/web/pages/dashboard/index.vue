@@ -32,11 +32,12 @@
       <NuxtLink to="/editor" class="btn-primary">Открыть редактор</NuxtLink>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" style="grid-auto-flow: dense;">
       <div
         v-for="project in projects"
         :key="project.id"
-        class="card group overflow-hidden"
+        class="card group"
+        style="min-width: 0; overflow: hidden;"
       >
         <div
           class="aspect-[4/3] rounded-xl overflow-hidden bg-white/5 mb-4"
@@ -62,25 +63,24 @@
           </div>
         </div>
 
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex-1 min-w-0 relative">
-            <h3
-              class="font-semibold truncate group-hover:text-white transition-colors cursor-pointer"
-              :class="editingProjectId === project.id ? 'invisible' : ''"
-              @click.stop="startRename(project)"
-            >
-              {{ project.name }}
-            </h3>
+        <div class="flex items-center justify-between mb-2" style="height: 1.5rem;">
+          <div class="flex-1 min-w-0 overflow-hidden">
             <input
               v-if="editingProjectId === project.id"
               ref="renameInput"
               v-model="editingName"
-              class="absolute inset-0 w-full text-sm font-semibold bg-transparent border-b border-brand-500 focus:outline-none"
-              style="padding: 0;"
+              class="w-full text-sm font-semibold bg-transparent border-b border-brand-500 focus:outline-none leading-6"
               @keyup.enter="saveRename(project.id)"
               @keyup.escape="cancelRename"
               @blur="saveRename(project.id)"
             />
+            <h3
+              v-else
+              class="font-semibold truncate group-hover:text-white transition-colors cursor-pointer leading-6"
+              @click.stop="startRename(project)"
+            >
+              {{ project.name }}
+            </h3>
           </div>
 
           <div class="flex items-center gap-1 ml-2">
