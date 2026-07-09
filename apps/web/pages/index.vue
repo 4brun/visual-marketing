@@ -191,12 +191,12 @@
           <div
             v-for="(plan, index) in plans"
             :key="index"
-            class="card relative overflow-hidden"
+            class="card relative"
             :class="plan.popular ? 'border-brand-500/30 shadow-glow' : ''"
           >
             <div
               v-if="plan.popular"
-              class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-accent-cyan"
+              class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-accent-cyan rounded-t-2xl"
             ></div>
             <div class="text-center">
               <h3 class="text-lg font-semibold mb-2">{{ plan.name }}</h3>
