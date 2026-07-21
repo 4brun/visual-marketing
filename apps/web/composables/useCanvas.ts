@@ -1,14 +1,19 @@
+import { ref } from 'vue';
 import * as fabric from 'fabric';
 
-let canvas: fabric.Canvas | null = null;
-
 export function useCanvas() {
+  const canvas = ref<fabric.Canvas | null>(null);
+  const activeObject = ref<fabric.FabricObject | null>(null);
+
   function initCanvas(canvasId: string, width: number, height: number): fabric.Canvas {
-    if (canvas) {
-      canvas.dispose();
+    if (canvas.value) {
+      canvas.value.dispose();
     }
 
-    canvas = new fabric.Canvas(canvasId, {
+    const el = document.getElementById(canvasId) as HTMLCanvasElement;
+    if (!el) throw new Error(`Canvas element #${canvasId} not found`);
+
+    canvas.value = new fabric.Canvas(el, {
       width,
       height,
       backgroundColor: '#ffffff',
@@ -16,6 +21,7 @@ export function useCanvas() {
       controlsAboveOverlay: true,
     });
 
+    // Style selection controls
     fabric.InteractiveFabricObject.prototype.set({
       cornerColor: '#6366f1',
       cornerStrokeColor: '#6366f1',
@@ -26,85 +32,96 @@ export function useCanvas() {
       borderColor: '#6366f1',
     });
 
-    return canvas;
+    // Track active object
+    canvas.value.on('selection:created', () => {
+      activeObject.value = canvas.value?.getActiveObject() ?? null;
+    });
+    canvas.value.on('selection:updated', () => {
+      activeObject.value = canvas.value?.getActiveObject() ?? null;
+    });
+    canvas.value.on('selection:cleared', () => {
+      activeObject.value = null;
+    });
+
+    return canvas.value;
   }
 
   function getCanvas(): fabric.Canvas | null {
-    return canvas;
+    return canvas.value;
   }
 
   async function setBackgroundFromUrl(url: string): Promise<void> {
-    if (!canvas) return;
+    if (!canvas.value) return;
 
     const img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
-    const scaleX = canvas.width! / img.width!;
-    const scaleY = canvas.height! / img.height!;
+    const scaleX = canvas.value.width! / img.width!;
+    const scaleY = canvas.value.height! / img.height!;
     const scale = Math.max(scaleX, scaleY);
 
     img.set({
-      scaleX: scale,
-      scaleY: scale,
+      scaleX,
+      scaleY,
       selectable: false,
       evented: false,
     });
 
-    canvas.backgroundImage = img;
-    canvas.renderAll();
+    canvas.value.backgroundImage = img;
+    canvas.value.renderAll();
   }
 
   async function addObjectFromUrl(url: string, options?: { left?: number; top?: number }): Promise<fabric.FabricImage | undefined> {
-    if (!canvas) return;
+    if (!canvas.value) return;
 
     const img = await fabric.FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
 
     img.set({
-      left: options?.left ?? canvas.width! / 2,
-      top: options?.top ?? canvas.height! / 2,
+      left: options?.left ?? canvas.value.width! / 2,
+      top: options?.top ?? canvas.value.height! / 2,
       originX: 'center',
       originY: 'center',
     });
 
-    img.scaleToWidth(Math.min(canvas.width! * 0.6, img.width!));
-    canvas.add(img);
-    canvas.setActiveObject(img);
-    canvas.renderAll();
+    img.scaleToWidth(Math.min(canvas.value.width! * 0.6, img.width!));
+    canvas.value.add(img);
+    canvas.value.setActiveObject(img);
+    canvas.value.renderAll();
 
     return img;
   }
 
   async function addImageFromFile(file: File): Promise<fabric.FabricImage | undefined> {
-    if (!canvas) return;
+    if (!canvas.value) return;
 
     const url = URL.createObjectURL(file);
     const img = await fabric.FabricImage.fromURL(url);
 
-    const scaleX = canvas.width! / img.width!;
-    const scaleY = canvas.height! / img.height!;
+    const scaleX = canvas.value.width! / img.width!;
+    const scaleY = canvas.value.height! / img.height!;
     const scale = Math.min(scaleX, scaleY, 1);
 
     img.set({
-      left: canvas.width! / 2,
-      top: canvas.height! / 2,
+      left: canvas.value.width! / 2,
+      top: canvas.value.height! / 2,
       originX: 'center',
       originY: 'center',
       scaleX: scale,
       scaleY: scale,
     });
 
-    canvas.add(img);
-    canvas.setActiveObject(img);
-    canvas.renderAll();
+    canvas.value.add(img);
+    canvas.value.setActiveObject(img);
+    canvas.value.renderAll();
 
     URL.revokeObjectURL(url);
     return img;
   }
 
-  function addText(text: string, options?: { left?: number; top?: number; fontSize?: number; fill?: string }): fabric.FabricText | undefined {
-    if (!canvas) return;
+  function addText(text: string, options?: { left?: number; top?: number; fontSize?: number; fill?: string }): fabric.IText | undefined {
+    if (!canvas.value) return;
 
-    const textObj = new fabric.FabricText(text, {
-      left: options?.left ?? canvas.width! / 2,
-      top: options?.top ?? canvas.height! / 2,
+    const textObj = new fabric.IText(text, {
+      left: options?.left ?? canvas.value.width! / 2,
+      top: options?.top ?? canvas.value.height! / 2,
       originX: 'center',
       originY: 'center',
       fontSize: options?.fontSize ?? 36,
@@ -119,47 +136,49 @@ export function useCanvas() {
       }),
     });
 
-    canvas.add(textObj);
-    canvas.setActiveObject(textObj);
-    canvas.renderAll();
+    canvas.value.add(textObj);
+    canvas.value.setActiveObject(textObj);
+    canvas.value.renderAll();
 
     return textObj;
   }
 
   function resize(width: number, height: number): void {
-    if (!canvas) return;
-    canvas.setWidth(width);
-    canvas.setHeight(height);
-    canvas.renderAll();
+    if (!canvas.value) return;
+    canvas.value.setWidth(width);
+    canvas.value.setHeight(height);
+    canvas.value.renderAll();
   }
 
   function exportToDataURL(format: 'png' | 'jpeg' = 'png', quality: number = 1): string {
-    if (!canvas) throw new Error('Canvas not initialized');
-    canvas.discardActiveObject();
-    canvas.renderAll();
-    return canvas.toDataURL({ format, quality, multiplier: 1 });
+    if (!canvas.value) throw new Error('Canvas not initialized');
+    canvas.value.discardActiveObject();
+    canvas.value.renderAll();
+    return canvas.value.toDataURL({ format, quality, multiplier: 1 });
   }
 
   function toJSON(): string {
-    if (!canvas) throw new Error('Canvas not initialized');
-    return JSON.stringify(canvas.toJSON());
+    if (!canvas.value) throw new Error('Canvas not initialized');
+    return JSON.stringify(canvas.value.toJSON());
   }
 
   function loadFromJSON(json: string): void {
-    if (!canvas) return;
-    canvas.loadFromJSON(json).then(() => {
-      canvas!.renderAll();
+    if (!canvas.value) return;
+    canvas.value.loadFromJSON(json).then(() => {
+      canvas.value!.renderAll();
     });
   }
 
   function dispose(): void {
-    if (canvas) {
-      canvas.dispose();
-      canvas = null;
+    if (canvas.value) {
+      canvas.value.dispose();
+      canvas.value = null;
     }
   }
 
   return {
+    canvas,
+    activeObject,
     initCanvas,
     getCanvas,
     setBackgroundFromUrl,

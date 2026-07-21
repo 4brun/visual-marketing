@@ -98,7 +98,6 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { useAuthForm } from '~/composables/useAuthForm';
 
 const authForm = useAuthForm();
 

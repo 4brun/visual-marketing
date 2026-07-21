@@ -13,9 +13,9 @@
       </NuxtLink>
     </div>
 
-    <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="i in 6" :key="i" class="card p-4">
-        <div class="skeleton h-40 mb-4" />
+    <div v-if="loading" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem;">
+      <div v-for="i in 6" :key="i" class="card-flat p-6">
+        <div class="skeleton thumb" />
         <div class="skeleton h-4 w-2/3 mb-2" />
         <div class="skeleton h-3 w-1/3" />
       </div>
@@ -36,10 +36,10 @@
       <div
         v-for="project in projects"
         :key="project.id"
-        style="position: relative; padding: 1.5rem; border-radius: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); min-width: 0; overflow: hidden;"
+        class="card-flat p-6"
       >
         <div
-          style="aspect-ratio: 4/3; border-radius: 0.75rem; overflow: hidden; background: rgba(255,255,255,0.05); margin-bottom: 1rem; cursor: pointer;"
+          class="thumb cursor-pointer"
           @click="openProject(project.id)"
         >
           <div v-if="project.images?.length" style="width: 100%; height: 100%;">
@@ -82,7 +82,7 @@
             />
           </div>
 
-          <div style="display: flex; align-items: center; gap: 0.25rem; margin-left: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.25rem; margin-left: 0.5rem; flex-shrink: 0;">
             <button
               style="padding: 0.375rem; border-radius: 0.5rem; color: #6b7280; transition: all 0.2s; background: transparent; border: none; cursor: pointer;"
               @click.stop="startRename(project)"
@@ -148,9 +148,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue';
 import type { Project } from '@visual-marketing/shared';
-import { useApi } from '~/composables/useApi';
-import { useRouter } from '#app';
-import { definePageMeta } from '#imports';
 
 definePageMeta({ layout: 'editor' });
 
