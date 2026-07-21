@@ -204,6 +204,20 @@
           </div>
         </div>
 
+        <!-- Crop tool -->
+        <div v-if="editorStore.currentImage && !crop.isCropping.value" class="card p-4">
+          <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Кадрирование</label>
+          <button
+            @click="crop.startCrop()"
+            class="w-full py-2 rounded-xl text-sm font-medium bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+          >
+            <svg class="w-4 h-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Кадрировать
+          </button>
+        </div>
+
         <!-- Object actions -->
         <div v-if="canvas.activeObject.value" class="card p-4">
           <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Объект</label>
@@ -240,6 +254,14 @@
         </button>
       </div>
     </aside>
+
+    <!-- Crop modal -->
+    <CropModal
+      v-if="crop.isCropping.value"
+      @apply="crop.applyCrop"
+      @cancel="crop.cancelCrop"
+      @set-ratio="setCropRatio"
+    />
 
     <!-- Canvas area -->
     <main class="editor-canvas-area">
@@ -284,6 +306,7 @@ const canvas = useCanvas();
 const editorStore = useEditorStore();
 const layers = useLayers();
 const history = useHistory(canvas.canvas);
+const crop = useCrop(canvas.canvas);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const prompt = ref<string>('Современная минималистичная гостиная, мягкий естественный свет');
@@ -496,6 +519,10 @@ function addTextOverlay(): void {
       }
     }
   }
+}
+
+function setCropRatio(ratio: number | null): void {
+  crop.setAspectRatio(ratio);
 }
 
 function exportImage(): void {
