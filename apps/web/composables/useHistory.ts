@@ -34,6 +34,9 @@ export function useHistory(canvas: Ref<fabric.Canvas | null>) {
 
     canvas.value.loadFromJSON(history.value[currentIndex.value]).then(() => {
       canvas.value!.renderAll();
+    }).catch((err) => {
+      console.error('History load failed:', err);
+    }).finally(() => {
       isUndoRedo.value = false;
     });
   }
@@ -46,6 +49,9 @@ export function useHistory(canvas: Ref<fabric.Canvas | null>) {
 
     canvas.value.loadFromJSON(history.value[currentIndex.value]).then(() => {
       canvas.value!.renderAll();
+    }).catch((err) => {
+      console.error('History load failed:', err);
+    }).finally(() => {
       isUndoRedo.value = false;
     });
   }

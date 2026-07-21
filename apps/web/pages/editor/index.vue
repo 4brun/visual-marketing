@@ -273,7 +273,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, nextTick, onMounted, onUnmounted } from 'vue';
 import { RESIZE_PRESETS } from '@visual-marketing/shared';
 import type { JobStatus } from '@visual-marketing/shared';
 
@@ -312,12 +312,18 @@ function handleKeyDown(e: KeyboardEvent): void {
 
   // Undo: Ctrl+Z
   if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    const active = document.activeElement;
+    const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+    if (isInput) return;
     e.preventDefault();
     history.undo();
   }
 
   // Redo: Ctrl+Y or Ctrl+Shift+Z
   if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+    const active = document.activeElement;
+    const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+    if (isInput) return;
     e.preventDefault();
     history.redo();
   }
@@ -337,6 +343,9 @@ onMounted(() => {
   canvas.canvas.value?.on('object:modified', () => history.saveState());
   canvas.canvas.value?.on('object:added', () => history.saveState());
   canvas.canvas.value?.on('object:removed', () => history.saveState());
+
+  // Save initial canvas state so undo has a baseline
+  nextTick(() => history.saveState());
 });
 
 onUnmounted(() => {
