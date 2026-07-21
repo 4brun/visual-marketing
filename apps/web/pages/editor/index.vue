@@ -6,6 +6,14 @@
         <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Инструменты</h2>
       </div>
 
+      <!-- Toolbar -->
+      <div class="p-4 border-b border-white/10">
+        <Toolbar
+          :selected-tool="selectedTool"
+          @select="handleToolSelect"
+        />
+      </div>
+
       <div class="sidebar-content">
         <!-- Upload -->
         <div class="card p-4">
@@ -229,10 +237,12 @@
           </button>
         </div>
 
-        <!-- Property panel -->
-        <PropertyPanel
+        <!-- Text editor (when text object selected) -->
+        <TextEditor
+          v-if="canvas.activeObject.value"
           :selected-object="canvas.activeObject.value"
-          @update="handlePropertyUpdate"
+          @update-text="handleTextUpdate"
+          @update-shadow="handleTextUpdate"
         />
 
         <!-- Filter panel -->
@@ -247,6 +257,12 @@
           @set-saturation="filters.setSaturation"
           @set-blur="filters.setBlur"
           @reset="filters.resetFilters"
+        />
+
+        <!-- Property panel -->
+        <PropertyPanel
+          :selected-object="canvas.activeObject.value"
+          @update="handlePropertyUpdate"
         />
 
         <!-- Layer panel -->
@@ -339,6 +355,7 @@ const removingBg = ref<boolean>(false);
 const generating = ref<boolean>(false);
 const composing = ref<boolean>(false);
 const showLayers = ref<boolean>(true);
+const selectedTool = ref<string>('select');
 
 const quickStyles: string[] = [
   'Скандинавская гостиная, мягкий свет',
@@ -556,6 +573,21 @@ function exportImage(): void {
 }
 
 function handlePropertyUpdate(_property: string, _value: any): void {
+  canvas.getCanvas()?.renderAll();
+  history.saveState();
+}
+
+function handleToolSelect(toolId: string): void {
+  selectedTool.value = toolId;
+
+  if (toolId === 'crop') {
+    crop.startCrop();
+  } else if (toolId === 'text') {
+    addTextOverlay();
+  }
+}
+
+function handleTextUpdate(): void {
   canvas.getCanvas()?.renderAll();
   history.saveState();
 }
