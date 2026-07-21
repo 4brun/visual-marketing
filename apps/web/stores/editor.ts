@@ -1,6 +1,14 @@
 import { defineStore } from 'pinia';
 import type { Image, JobStatus } from '@visual-marketing/shared';
 
+export interface Layer {
+  id: string;
+  name: string;
+  visible: boolean;
+  locked: boolean;
+  objectIds: string[];
+}
+
 interface EditorState {
   projectId: string | null;
   currentImage: Image | null;
@@ -9,6 +17,8 @@ interface EditorState {
   canvasWidth: number;
   canvasHeight: number;
   isProcessing: boolean;
+  layers: Layer[];
+  selectedLayerId: string | null;
 }
 
 export const useEditorStore = defineStore('editor', {
@@ -20,6 +30,8 @@ export const useEditorStore = defineStore('editor', {
     canvasWidth: 900,
     canvasHeight: 1200,
     isProcessing: false,
+    layers: [],
+    selectedLayerId: null,
   }),
 
   actions: {
@@ -53,6 +65,25 @@ export const useEditorStore = defineStore('editor', {
       if (this.currentImage?.id === imageId) {
         this.currentImage = { ...this.currentImage, status, ...urls };
       }
+    },
+
+    addLayer(layer: Layer) {
+      this.layers.push(layer);
+    },
+
+    removeLayer(layerId: string) {
+      this.layers = this.layers.filter(l => l.id !== layerId);
+    },
+
+    updateLayer(layerId: string, updates: Partial<Layer>) {
+      const layer = this.layers.find(l => l.id === layerId);
+      if (layer) {
+        Object.assign(layer, updates);
+      }
+    },
+
+    setSelectedLayerId(layerId: string | null) {
+      this.selectedLayerId = layerId;
     },
   },
 });

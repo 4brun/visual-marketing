@@ -186,6 +186,17 @@
             Удалить объект
           </button>
         </div>
+
+        <!-- Layer panel -->
+        <LayerPanel
+          v-if="showLayers"
+          :selected-layer-id="layers.selectedLayerId.value"
+          @select="handleSelectLayer"
+          @add="addNewLayer"
+          @toggle-visibility="handleToggleVisibility"
+          @toggle-lock="handleToggleLock"
+          @delete="handleDeleteLayer"
+        />
       </div>
 
       <!-- Export -->
@@ -251,6 +262,7 @@ definePageMeta({ layout: 'editor' });
 const api = useApi();
 const canvas = useCanvas();
 const editorStore = useEditorStore();
+const layers = useLayers();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const prompt = ref<string>('Современная минималистичная гостиная, мягкий естественный свет');
@@ -261,6 +273,7 @@ const selectedPreset = ref<string>('WILDBERRIES_3_4');
 const removingBg = ref<boolean>(false);
 const generating = ref<boolean>(false);
 const composing = ref<boolean>(false);
+const showLayers = ref<boolean>(true);
 
 const quickStyles: string[] = [
   'Скандинавская гостиная, мягкий свет',
@@ -399,6 +412,28 @@ function exportImage(): void {
   link.download = `visual-marketing-${Date.now()}.png`;
   link.href = dataUrl;
   link.click();
+}
+
+// Layer management functions
+function addNewLayer(): void {
+  const layerName = `Слой ${layers.layers.value.length + 1}`;
+  layers.addLayer(layerName);
+}
+
+function handleSelectLayer(layerId: string): void {
+  layers.selectLayer(layerId);
+}
+
+function handleToggleVisibility(layerId: string): void {
+  layers.toggleVisibility(layerId);
+}
+
+function handleToggleLock(layerId: string): void {
+  layers.toggleLock(layerId);
+}
+
+function handleDeleteLayer(layerId: string): void {
+  layers.deleteLayer(layerId);
 }
 </script>
 
