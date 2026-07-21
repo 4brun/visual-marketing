@@ -118,7 +118,16 @@ export function useCanvas() {
     return img;
   }
 
-  function addText(text: string, options?: { left?: number; top?: number; fontSize?: number; fill?: string }): fabric.IText | undefined {
+  function addText(text: string, options?: {
+    left?: number;
+    top?: number;
+    fontSize?: number;
+    fill?: string;
+    fontFamily?: string;
+    fontWeight?: string;
+    fontStyle?: string;
+    textAlign?: string;
+  }): fabric.IText | undefined {
     if (!canvas.value) return;
 
     const textObj = new fabric.IText(text, {
@@ -128,8 +137,10 @@ export function useCanvas() {
       originY: 'center',
       fontSize: options?.fontSize ?? 36,
       fill: options?.fill ?? '#ffffff',
-      fontFamily: 'Inter, sans-serif',
-      fontWeight: 'bold',
+      fontFamily: options?.fontFamily ?? 'Inter, sans-serif',
+      fontWeight: options?.fontWeight ?? 'bold',
+      fontStyle: options?.fontStyle ?? 'normal',
+      textAlign: options?.textAlign ?? 'center',
       shadow: new fabric.Shadow({
         color: 'rgba(0,0,0,0.5)',
         blur: 10,
