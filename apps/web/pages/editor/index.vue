@@ -229,6 +229,20 @@
           </button>
         </div>
 
+        <!-- Filter panel -->
+        <FilterPanel
+          :selected-object="canvas.activeObject.value"
+          :brightness="filters.brightness.value"
+          :contrast="filters.contrast.value"
+          :saturation="filters.saturation.value"
+          :blur="filters.blur.value"
+          @set-brightness="filters.setBrightness"
+          @set-contrast="filters.setContrast"
+          @set-saturation="filters.setSaturation"
+          @set-blur="filters.setBlur"
+          @reset="filters.resetFilters"
+        />
+
         <!-- Layer panel -->
         <LayerPanel
           v-if="showLayers"
@@ -307,6 +321,7 @@ const editorStore = useEditorStore();
 const layers = useLayers();
 const history = useHistory(canvas.canvas);
 const crop = useCrop(canvas.canvas);
+const filters = useFilters(canvas.canvas);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const prompt = ref<string>('Современная минималистичная гостиная, мягкий естественный свет');
