@@ -79,6 +79,7 @@ export function useCanvas() {
       top: options?.top ?? canvas.value.height! / 2,
       originX: 'center',
       originY: 'center',
+      id: `obj-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     });
 
     img.scaleToWidth(Math.min(canvas.value.width! * 0.6, img.width!));
@@ -106,6 +107,7 @@ export function useCanvas() {
       originY: 'center',
       scaleX: scale,
       scaleY: scale,
+      id: `obj-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     });
 
     canvas.value.add(img);
@@ -134,6 +136,7 @@ export function useCanvas() {
         offsetX: 2,
         offsetY: 2,
       }),
+      id: `obj-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     });
 
     canvas.value.add(textObj);

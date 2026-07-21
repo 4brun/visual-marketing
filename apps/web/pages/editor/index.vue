@@ -286,6 +286,11 @@ onMounted(() => {
   const preset = RESIZE_PRESETS[selectedPreset.value];
   canvas.initCanvas('main-canvas', preset.width, preset.height);
   window.addEventListener('keydown', handleKeyDown);
+
+  // Create default layer if none exist
+  if (layers.layers.value.length === 0) {
+    layers.addLayer('Слой 1');
+  }
 });
 
 onUnmounted(() => {
@@ -305,7 +310,15 @@ function handleUpload(e: Event): void {
 }
 
 async function uploadFile(file: File): Promise<void> {
-  await canvas.addImageFromFile(file);
+  const img = await canvas.addImageFromFile(file);
+
+  // Assign to active layer
+  if (img?.id) {
+    const activeLayerId = layers.selectedLayerId.value ?? layers.layers.value[0]?.id;
+    if (activeLayerId) {
+      layers.addObjectToLayer(activeLayerId, img.id);
+    }
+  }
 
   let projectId = editorStore.projectId;
   if (!projectId) {
@@ -377,7 +390,15 @@ async function composeImage(): Promise<void> {
   try {
     const { data } = await api.get<{ urls: { background: string; cutout: string } }>(`/images/${editorStore.currentImage!.id}`);
     await canvas.setBackgroundFromUrl(data.urls.background);
-    await canvas.addObjectFromUrl(data.urls.cutout);
+    const img = await canvas.addObjectFromUrl(data.urls.cutout);
+
+    // Assign to active layer
+    if (img?.id) {
+      const activeLayerId = layers.selectedLayerId.value ?? layers.layers.value[0]?.id;
+      if (activeLayerId) {
+        layers.addObjectToLayer(activeLayerId, img.id);
+      }
+    }
   } finally {
     composing.value = false;
   }
@@ -395,14 +416,30 @@ function applyPreset(key: string): void {
 function deleteSelected(): void {
   const obj = canvas.activeObject.value;
   if (!obj || !canvas.getCanvas()) return;
+
+  const objId = (obj as any).id;
   canvas.getCanvas()!.remove(obj);
   canvas.getCanvas()!.discardActiveObject();
   canvas.getCanvas()!.renderAll();
+
+  // Remove from layer
+  if (objId) {
+    const activeLayerId = layers.selectedLayerId.value ?? layers.layers.value[0]?.id;
+    if (activeLayerId) {
+      layers.removeObjectFromLayer(activeLayerId, objId);
+    }
+  }
 }
 
 function addTextOverlay(): void {
   if (overlayText.value) {
-    canvas.addText(overlayText.value, { fill: textColor.value, fontSize: textFontSize.value });
+    const textObj = canvas.addText(overlayText.value, { fill: textColor.value, fontSize: textFontSize.value });
+    if (textObj?.id) {
+      const activeLayerId = layers.selectedLayerId.value ?? layers.layers.value[0]?.id;
+      if (activeLayerId) {
+        layers.addObjectToLayer(activeLayerId, textObj.id);
+      }
+    }
   }
 }
 

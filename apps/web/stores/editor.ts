@@ -82,6 +82,11 @@ export const useEditorStore = defineStore('editor', {
       }
     },
 
+    reorderLayers(fromIndex: number, toIndex: number) {
+      const [moved] = this.layers.splice(fromIndex, 1);
+      this.layers.splice(toIndex, 0, moved);
+    },
+
     setSelectedLayerId(layerId: string | null) {
       this.selectedLayerId = layerId;
     },

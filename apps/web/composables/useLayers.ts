@@ -1,5 +1,4 @@
 import { computed } from 'vue';
-import * as fabric from 'fabric';
 import { useEditorStore } from '~/stores/editor';
 import type { Layer } from '~/stores/editor';
 
@@ -29,9 +28,7 @@ export function useLayers() {
     const newIdx = direction === 'up' ? idx + 1 : idx - 1;
     if (newIdx < 0 || newIdx >= store.layers.length) return;
 
-    const temp = store.layers[idx];
-    store.layers[idx] = store.layers[newIdx];
-    store.layers[newIdx] = temp;
+    store.reorderLayers(idx, newIdx);
 
     reorderCanvasObjects();
   }
@@ -40,7 +37,8 @@ export function useLayers() {
     const layer = store.layers.find(l => l.id === layerId);
     if (!layer) return;
 
-    store.updateLayer(layerId, { visible: !layer.visible });
+    const newVisible = !layer.visible;
+    store.updateLayer(layerId, { visible: newVisible });
 
     const fabricCanvas = canvas.getCanvas();
     if (!fabricCanvas) return;
@@ -48,8 +46,8 @@ export function useLayers() {
     layer.objectIds.forEach(objId => {
       const obj = fabricCanvas.getObjects().find((o: any) => o.id === objId);
       if (obj) {
-        obj.set('visible', layer.visible);
-        obj.set('evented', layer.visible);
+        obj.set('visible', newVisible);
+        obj.set('evented', newVisible);
       }
     });
     fabricCanvas.renderAll();
@@ -59,7 +57,8 @@ export function useLayers() {
     const layer = store.layers.find(l => l.id === layerId);
     if (!layer) return;
 
-    store.updateLayer(layerId, { locked: !layer.locked });
+    const newLocked = !layer.locked;
+    store.updateLayer(layerId, { locked: newLocked });
 
     const fabricCanvas = canvas.getCanvas();
     if (!fabricCanvas) return;
@@ -68,8 +67,8 @@ export function useLayers() {
       const obj = fabricCanvas.getObjects().find((o: any) => o.id === objId);
       if (obj) {
         obj.set({
-          selectable: !layer.locked,
-          evented: !layer.locked,
+          selectable: !newLocked,
+          evented: !newLocked,
         });
       }
     });
@@ -108,11 +107,8 @@ export function useLayers() {
     const objects = fabricCanvas.getObjects()
       .filter((o: any) => layer.objectIds.includes(o.id));
 
-    if (objects.length === 1) {
+    if (objects.length >= 1) {
       fabricCanvas.setActiveObject(objects[0]);
-    } else if (objects.length > 1) {
-      const group = new fabric.Group(objects);
-      fabricCanvas.setActiveObject(group);
     }
     fabricCanvas.renderAll();
   }
