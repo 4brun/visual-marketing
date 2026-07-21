@@ -229,6 +229,12 @@
           </button>
         </div>
 
+        <!-- Property panel -->
+        <PropertyPanel
+          :selected-object="canvas.activeObject.value"
+          @update="handlePropertyUpdate"
+        />
+
         <!-- Filter panel -->
         <FilterPanel
           :selected-object="canvas.activeObject.value"
@@ -547,6 +553,11 @@ function exportImage(): void {
   link.download = `visual-marketing-${Date.now()}.png`;
   link.href = dataUrl;
   link.click();
+}
+
+function handlePropertyUpdate(_property: string, _value: any): void {
+  canvas.getCanvas()?.renderAll();
+  history.saveState();
 }
 
 // Layer management functions
