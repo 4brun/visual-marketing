@@ -372,6 +372,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  crop.cancelCrop();
   window.removeEventListener('keydown', handleKeyDown);
   canvas.dispose();
 });

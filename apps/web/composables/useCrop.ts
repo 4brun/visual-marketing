@@ -156,23 +156,37 @@ export function useCrop(canvas: Ref<fabric.Canvas | null>) {
     const rect = cropRect.value;
     const img = originalImage.value;
 
+    const imgScaleX = img.scaleX ?? 1;
+    const imgScaleY = img.scaleY ?? 1;
     const imgLeft = img.originX === 'center'
-      ? img.left! - (img.width! * img.scaleX!) / 2
-      : img.left!;
+      ? (img.left ?? 0) - ((img.width ?? 0) * imgScaleX) / 2
+      : (img.left ?? 0);
     const imgTop = img.originY === 'center'
-      ? img.top! - (img.height! * img.scaleY!) / 2
-      : img.top!;
+      ? (img.top ?? 0) - ((img.height ?? 0) * imgScaleY) / 2
+      : (img.top ?? 0);
 
-    const cropLeft = (rect.left! - imgLeft) / img.scaleX!;
-    const cropTop = (rect.top! - imgTop) / img.scaleY!;
-    const cropWidth = (rect.width! * (rect.scaleX ?? 1)) / img.scaleX!;
-    const cropHeight = (rect.height! * (rect.scaleY ?? 1)) / img.scaleY!;
+    let cropLeft = ((rect.left ?? 0) - imgLeft) / imgScaleX;
+    let cropTop = ((rect.top ?? 0) - imgTop) / imgScaleY;
+    let cropWidth = ((rect.width ?? 0) * (rect.scaleX ?? 1)) / imgScaleX;
+    let cropHeight = ((rect.height ?? 0) * (rect.scaleY ?? 1)) / imgScaleY;
+
+    // Clamp to image bounds
+    const imgW = img.width ?? 0;
+    const imgH = img.height ?? 0;
+    if (cropLeft < 0) { cropWidth += cropLeft; cropLeft = 0; }
+    if (cropTop < 0) { cropHeight += cropTop; cropTop = 0; }
+    if (cropLeft + cropWidth > imgW) cropWidth = imgW - cropLeft;
+    if (cropTop + cropHeight > imgH) cropHeight = imgH - cropTop;
+
+    if (cropWidth <= 0 || cropHeight <= 0) return;
 
     const croppedCanvas = document.createElement('canvas');
     croppedCanvas.width = cropWidth;
     croppedCanvas.height = cropHeight;
 
-    const ctx = croppedCanvas.getContext('2d')!;
+    const ctx = croppedCanvas.getContext('2d');
+    if (!ctx) return;
+
     const imgEl = img.getElement() as HTMLImageElement;
 
     ctx.drawImage(
@@ -190,10 +204,27 @@ export function useCrop(canvas: Ref<fabric.Canvas | null>) {
     const prevScaleX = img.scaleX;
     const prevScaleY = img.scaleY;
 
-    cleanup();
+    // Save cleanup references before they are cleared
+    const cvs = canvas.value;
+    const rectToRemove = cropRect.value;
+    const handlerToClean = scalingHandler;
+
+    // Clean up reactive state immediately (clears refs before async resolves)
+    cropRect.value = null;
+    originalImage.value = null;
+    isCropping.value = false;
+
+    // Remove non-async artifacts now
+    if (handlerToClean && cvs) {
+      cvs.off('object:scaling', handlerToClean);
+      scalingHandler = null;
+    }
+    if (rectToRemove && cvs) {
+      cvs.remove(rectToRemove);
+    }
 
     fabric.FabricImage.fromURL(dataUrl).then((croppedImg) => {
-      canvas.value!.remove(img);
+      cvs.remove(img);
 
       croppedImg.set({
         left: prevLeft,
@@ -205,9 +236,9 @@ export function useCrop(canvas: Ref<fabric.Canvas | null>) {
         id: prevId,
       });
 
-      canvas.value!.add(croppedImg);
-      canvas.value!.setActiveObject(croppedImg);
-      canvas.value!.renderAll();
+      cvs.add(croppedImg);
+      cvs.setActiveObject(croppedImg);
+      cvs.renderAll();
     });
   }
 
