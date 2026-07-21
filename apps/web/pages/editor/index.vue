@@ -317,7 +317,6 @@
 
       <!-- Canvas wrapper - always rendered -->
       <div
-        ref="canvasWrapperRef"
         class="canvas-wrapper"
       >
         <canvas
@@ -340,7 +339,7 @@ definePageMeta({ layout: 'editor' });
 const api = useApi();
 const canvas = useCanvas();
 const editorStore = useEditorStore();
-const layers = useLayers();
+const layers = useLayers(canvas.canvas);
 const history = useHistory(canvas.canvas);
 const crop = useCrop(canvas.canvas);
 const filters = useFilters(canvas.canvas);
@@ -583,6 +582,9 @@ function handleToolSelect(toolId: string): void {
   if (toolId === 'crop') {
     crop.startCrop();
   } else if (toolId === 'text') {
+    if (!overlayText.value) {
+      overlayText.value = 'Введите текст';
+    }
     addTextOverlay();
   }
 }

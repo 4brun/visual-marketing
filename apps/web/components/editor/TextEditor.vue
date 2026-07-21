@@ -144,8 +144,6 @@ const emit = defineEmits<{
   (e: 'update-shadow', value: fabric.FabricObject): void;
 }>();
 
-const canvas = useCanvas();
-
 const isTextObject = computed(() => {
   return props.selectedObject instanceof fabric.IText ||
          props.selectedObject instanceof fabric.Textbox;
@@ -189,7 +187,6 @@ function updateText() {
   });
 
   textObj.dirty = true;
-  canvas.getCanvas()?.renderAll();
   emit('update-text', textObj);
 }
 
@@ -223,7 +220,6 @@ function updateShadow() {
   }
 
   props.selectedObject.dirty = true;
-  canvas.getCanvas()?.renderAll();
   emit('update-shadow', props.selectedObject);
 }
 </script>
