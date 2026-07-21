@@ -63,9 +63,9 @@
                 @click="userMenuOpen = !userMenuOpen"
                 class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/5 transition-all duration-300"
               >
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500/80 to-accent-cyan/80 flex items-center justify-center text-white text-sm font-bold">
+                <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500/80 to-accent-cyan/80 flex items-center justify-center text-white text-sm font-bold">
                   {{ authStore.userInitial }}
-                </div>
+                </span>
                 <svg
                   class="w-4 h-4 text-gray-400 transition-transform duration-200 hidden sm:block"
                   :class="{ 'rotate-180': userMenuOpen }"
@@ -227,8 +227,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useAuthStore } from '~/stores/auth';
-import { useRouter, useRoute } from '#app';
 
 const authStore = useAuthStore();
 const router = useRouter();

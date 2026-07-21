@@ -1,8 +1,8 @@
 <template>
   <div class="editor-layout">
     <!-- Sidebar -->
-    <aside class="editor-sidebar">
-      <div class="sidebar-header">
+    <aside class="editor-sidebar sidebar-border-r">
+      <div class="sidebar-header sidebar-border-b">
         <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Инструменты</h2>
       </div>
 
@@ -153,24 +153,43 @@
             placeholder="Хит продаж!"
             class="input text-sm mb-2"
           />
-          <div class="flex gap-2">
+          <div class="flex gap-2 mb-2">
             <input
               v-model="textColor"
               type="color"
               class="w-10 h-10 rounded-lg border-0 cursor-pointer bg-transparent"
             />
+            <input
+              v-model.number="textFontSize"
+              type="number"
+              min="12"
+              max="200"
+              placeholder="36"
+              class="input text-sm w-20"
+            />
             <button
               @click="addTextOverlay"
               class="flex-1 py-2 rounded-xl text-sm font-medium bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all"
             >
-              Добавить текст
+              Добавить
             </button>
           </div>
+        </div>
+
+        <!-- Object actions -->
+        <div v-if="canvas.activeObject.value" class="card p-4">
+          <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Объект</label>
+          <button
+            @click="deleteSelected"
+            class="w-full py-2 rounded-xl text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+          >
+            Удалить объект
+          </button>
         </div>
       </div>
 
       <!-- Export -->
-      <div class="sidebar-footer">
+      <div class="sidebar-footer sidebar-border-t">
         <button
           @click="exportImage"
           class="btn-primary w-full py-3"
@@ -188,7 +207,7 @@
       <!-- Empty state -->
       <div
         v-if="!editorStore.currentImage"
-        class="text-center animate-fade-in"
+        class="text-center animate-fade-in absolute z-10"
       >
         <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-brand-500/20 to-accent-cyan/20 flex items-center justify-center">
           <svg class="w-10 h-10 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -199,15 +218,15 @@
         <p class="text-sm text-gray-500">Поддерживаются форматы PNG, JPG до 20MB</p>
       </div>
 
-      <!-- Canvas wrapper - hidden when no image -->
+      <!-- Canvas wrapper - always rendered -->
       <div
-        v-show="editorStore.currentImage"
         ref="canvasWrapperRef"
         class="canvas-wrapper"
       >
         <canvas
           ref="canvasRef"
           id="main-canvas"
+          class="canvas-shadow"
         ></canvas>
       </div>
     </main>
@@ -218,10 +237,14 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { RESIZE_PRESETS } from '@visual-marketing/shared';
 import type { JobStatus } from '@visual-marketing/shared';
-import { useApi } from '~/composables/useApi';
-import { useCanvas } from '~/composables/useCanvas';
-import { useEditorStore } from '~/stores/editor';
-import { definePageMeta } from '#imports';
+
+function handleKeyDown(e: KeyboardEvent): void {
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+    deleteSelected();
+  }
+}
 
 definePageMeta({ layout: 'editor' });
 
@@ -233,6 +256,7 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const prompt = ref<string>('Современная минималистичная гостиная, мягкий естественный свет');
 const overlayText = ref<string>('');
 const textColor = ref<string>('#ffffff');
+const textFontSize = ref<number>(36);
 const selectedPreset = ref<string>('WILDBERRIES_3_4');
 const removingBg = ref<boolean>(false);
 const generating = ref<boolean>(false);
@@ -246,10 +270,13 @@ const quickStyles: string[] = [
 ];
 
 onMounted(() => {
-  canvas.initCanvas('main-canvas', 600, 800);
+  const preset = RESIZE_PRESETS[selectedPreset.value];
+  canvas.initCanvas('main-canvas', preset.width, preset.height);
+  window.addEventListener('keydown', handleKeyDown);
 });
 
 onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown);
   canvas.dispose();
 });
 
@@ -352,9 +379,17 @@ function applyPreset(key: string): void {
   }
 }
 
+function deleteSelected(): void {
+  const obj = canvas.activeObject.value;
+  if (!obj || !canvas.getCanvas()) return;
+  canvas.getCanvas()!.remove(obj);
+  canvas.getCanvas()!.discardActiveObject();
+  canvas.getCanvas()!.renderAll();
+}
+
 function addTextOverlay(): void {
   if (overlayText.value) {
-    canvas.addText(overlayText.value, { fill: textColor.value });
+    canvas.addText(overlayText.value, { fill: textColor.value, fontSize: textFontSize.value });
   }
 }
 
@@ -383,7 +418,6 @@ function exportImage(): void {
 .editor-sidebar {
   width: 20rem;
   background: var(--bg-secondary);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -398,7 +432,6 @@ function exportImage(): void {
 
 .sidebar-header {
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-content {
@@ -412,7 +445,6 @@ function exportImage(): void {
 
 .sidebar-footer {
   padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .editor-canvas-area {
@@ -439,21 +471,6 @@ function exportImage(): void {
   max-height: calc(100vh - 8rem);
   object-fit: contain;
   border-radius: 0.75rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
-
-.upload-zone {
-  position: relative;
-  border: 2px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.upload-zone:hover {
-  border-color: rgba(124, 58, 237, 0.5);
 }
 
 .upload-zone:hover .upload-icon {

@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import type { User, Plan } from '@visual-marketing/shared';
-import { useRuntimeConfig } from '#app';
 
 interface AuthState {
   user: User | null;
