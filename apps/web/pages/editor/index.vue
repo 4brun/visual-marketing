@@ -37,6 +37,34 @@
           </div>
         </div>
 
+        <!-- Undo/Redo -->
+        <div class="flex gap-2 mb-4">
+          <button
+            @click="history.undo"
+            :disabled="!history.canUndo.value"
+            class="flex-1 py-2 rounded-xl text-sm font-medium transition-all"
+            :class="history.canUndo.value
+              ? 'bg-white/10 text-gray-300 hover:bg-white/20'
+              : 'bg-white/5 text-gray-600 cursor-not-allowed'"
+          >
+            <svg class="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+          </button>
+          <button
+            @click="history.redo"
+            :disabled="!history.canRedo.value"
+            class="flex-1 py-2 rounded-xl text-sm font-medium transition-all"
+            :class="history.canRedo.value
+              ? 'bg-white/10 text-gray-300 hover:bg-white/20'
+              : 'bg-white/5 text-gray-600 cursor-not-allowed'"
+          >
+            <svg class="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6" />
+            </svg>
+          </button>
+        </div>
+
         <!-- Processing steps (only when image is uploaded) -->
         <div v-if="editorStore.currentImage" class="card p-4 space-y-4">
           <!-- Step 1: Remove BG -->
@@ -249,20 +277,13 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { RESIZE_PRESETS } from '@visual-marketing/shared';
 import type { JobStatus } from '@visual-marketing/shared';
 
-function handleKeyDown(e: KeyboardEvent): void {
-  if (e.key === 'Delete' || e.key === 'Backspace') {
-    const active = document.activeElement;
-    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
-    deleteSelected();
-  }
-}
-
 definePageMeta({ layout: 'editor' });
 
 const api = useApi();
 const canvas = useCanvas();
 const editorStore = useEditorStore();
 const layers = useLayers();
+const history = useHistory(canvas.canvas);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const prompt = ref<string>('Современная минималистичная гостиная, мягкий естественный свет');
@@ -282,6 +303,26 @@ const quickStyles: string[] = [
   'Детская комната, яркие цвета',
 ];
 
+function handleKeyDown(e: KeyboardEvent): void {
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+    deleteSelected();
+  }
+
+  // Undo: Ctrl+Z
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    history.undo();
+  }
+
+  // Redo: Ctrl+Y or Ctrl+Shift+Z
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+    e.preventDefault();
+    history.redo();
+  }
+}
+
 onMounted(() => {
   const preset = RESIZE_PRESETS[selectedPreset.value];
   canvas.initCanvas('main-canvas', preset.width, preset.height);
@@ -291,6 +332,11 @@ onMounted(() => {
   if (layers.layers.value.length === 0) {
     layers.addLayer('Слой 1');
   }
+
+  // Listen for canvas changes to save history
+  canvas.canvas.value?.on('object:modified', () => history.saveState());
+  canvas.canvas.value?.on('object:added', () => history.saveState());
+  canvas.canvas.value?.on('object:removed', () => history.saveState());
 });
 
 onUnmounted(() => {
