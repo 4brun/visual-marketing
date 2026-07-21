@@ -95,7 +95,7 @@
         <label class="block text-xs text-gray-500 mb-1">Выравнивание</label>
         <div class="flex gap-2">
           <button
-            v-for="align in ['left', 'center', 'right']"
+            v-for="align in alignOptions"
             :key="align"
             @click="setTextAlign(align)"
             class="px-3 py-2 rounded-lg transition-all"
@@ -133,13 +133,18 @@
 import { ref, computed, watch } from 'vue';
 import * as fabric from 'fabric';
 
+type TextAlign = 'left' | 'center' | 'right';
+
 const props = defineProps<{
   selectedObject: fabric.FabricObject | null;
 }>();
 
 const emit = defineEmits<{
-  (e: 'update', property: string, value: any): void;
+  (e: 'update-text', value: fabric.IText): void;
+  (e: 'update-shadow', value: fabric.FabricObject): void;
 }>();
+
+const canvas = useCanvas();
 
 const isTextObject = computed(() => {
   return props.selectedObject instanceof fabric.IText ||
@@ -151,8 +156,9 @@ const fontSize = ref(36);
 const fillColor = ref('#ffffff');
 const isBold = ref(true);
 const isItalic = ref(false);
-const textAlign = ref('center');
+const textAlign = ref<TextAlign>('center');
 const shadowBlur = ref(10);
+const alignOptions: TextAlign[] = ['left', 'center', 'right'];
 
 // Update local state when selection changes
 watch(() => props.selectedObject, (obj) => {
@@ -172,6 +178,7 @@ function updateText() {
   if (!props.selectedObject || !isTextObject.value) return;
 
   const textObj = props.selectedObject as fabric.IText;
+  fontSize.value = Math.min(200, Math.max(12, fontSize.value));
   textObj.set({
     fontFamily: fontFamily.value,
     fontSize: fontSize.value,
@@ -182,7 +189,8 @@ function updateText() {
   });
 
   textObj.dirty = true;
-  emit('update', 'text', textObj);
+  canvas.getCanvas()?.renderAll();
+  emit('update-text', textObj);
 }
 
 function toggleBold() {
@@ -195,7 +203,7 @@ function toggleItalic() {
   updateText();
 }
 
-function setTextAlign(align: string) {
+function setTextAlign(align: TextAlign) {
   textAlign.value = align;
   updateText();
 }
@@ -215,7 +223,8 @@ function updateShadow() {
   }
 
   props.selectedObject.dirty = true;
-  emit('update', 'shadow', props.selectedObject);
+  canvas.getCanvas()?.renderAll();
+  emit('update-shadow', props.selectedObject);
 }
 </script>
 
