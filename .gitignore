@@ -3,6 +3,8 @@ dist/
 .output/
 .nuxt/
 .mimocode/
+.agents/
+.turbo/
 .env
 .env.local
 *.log

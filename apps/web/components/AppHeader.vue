@@ -85,7 +85,7 @@
               >
                 <div
                   v-if="userMenuOpen"
-                  class="absolute right-0 top-full mt-2 w-64 rounded-2xl glass-strong border border-white/10 shadow-xl shadow-black/30 overflow-hidden"
+                  class="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-[#1a1a2e]/95 backdrop-blur-xl border border-white/10 shadow-xl shadow-black/30 overflow-hidden"
                 >
                   <div class="px-4 py-3 border-b border-white/5">
                     <p class="text-sm font-semibold text-white truncate">{{ authStore.user?.name || 'Пользователь' }}</p>

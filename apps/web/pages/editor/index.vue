@@ -1,13 +1,13 @@
 <template>
   <div class="editor-layout">
     <!-- Sidebar -->
-    <aside class="editor-sidebar sidebar-border-r">
-      <div class="sidebar-header sidebar-border-b">
-        <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Инструменты</h2>
+    <aside class="editor-sidebar">
+      <div class="sidebar-header">
+        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Инструменты</h2>
       </div>
 
       <!-- Toolbar -->
-      <div class="p-4 border-b border-white/10">
+      <div class="px-3 py-2 border-b border-white/5">
         <Toolbar
           :selected-tool="selectedTool"
           @select="handleToolSelect"
@@ -16,8 +16,8 @@
 
       <div class="sidebar-content">
         <!-- Upload -->
-        <div class="card p-4">
-          <label class="block text-xs font-medium text-gray-400 mb-3 uppercase tracking-wider">Исходное фото</label>
+        <div class="sidebar-section">
+          <label class="sidebar-label">Исходное фото</label>
           <div
             class="upload-zone"
             @click="fileInput?.click()"
@@ -32,168 +32,162 @@
               @change="handleUpload"
             />
             <div class="space-y-2">
-              <div class="w-10 h-10 mx-auto rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-brand-500/10 transition-colors">
-                <svg class="w-5 h-5 text-gray-400 group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="w-10 h-10 mx-auto rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-brand-500/10 transition-colors duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-brand-400 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
               <p class="text-sm text-gray-400">
                 <span class="text-brand-400 font-medium">Загрузите фото</span> или перетащите
               </p>
-              <p class="text-xs text-gray-500">PNG, JPG до 20MB</p>
+              <p class="text-xs text-gray-600">PNG, JPG до 20MB</p>
             </div>
           </div>
         </div>
 
         <!-- Undo/Redo -->
-        <div class="flex gap-2 mb-4">
+        <div class="flex gap-1.5">
           <button
             @click="history.undo"
             :disabled="!history.canUndo.value"
-            class="flex-1 py-2 rounded-xl text-sm font-medium transition-all"
+            class="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
             :class="history.canUndo.value
-              ? 'bg-white/10 text-gray-300 hover:bg-white/20'
-              : 'bg-white/5 text-gray-600 cursor-not-allowed'"
+              ? 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+              : 'text-gray-700 cursor-not-allowed'"
           >
-            <svg class="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            <svg class="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
             </svg>
           </button>
           <button
             @click="history.redo"
             :disabled="!history.canRedo.value"
-            class="flex-1 py-2 rounded-xl text-sm font-medium transition-all"
+            class="flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
             :class="history.canRedo.value
-              ? 'bg-white/10 text-gray-300 hover:bg-white/20'
-              : 'bg-white/5 text-gray-600 cursor-not-allowed'"
+              ? 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+              : 'text-gray-700 cursor-not-allowed'"
           >
-            <svg class="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6" />
+            <svg class="w-4 h-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 10h-10a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6" />
             </svg>
           </button>
         </div>
 
-        <!-- Processing steps (only when image is uploaded) -->
-        <div v-if="editorStore.currentImage" class="card p-4 space-y-4">
-          <!-- Step 1: Remove BG -->
-          <div>
-            <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Шаг 1: Удаление фона</label>
+        <!-- Processing steps -->
+        <div v-if="editorStore.currentImage" class="sidebar-section">
+          <label class="sidebar-label">Шаг 1: Удаление фона</label>
+          <button
+            @click="removeBackground"
+            :disabled="removingBg"
+            class="w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
+            :class="removingBg
+              ? 'bg-purple-500/15 text-purple-300 cursor-wait'
+              : 'bg-purple-600 hover:bg-purple-500 text-white hover:shadow-glow'"
+          >
+            <span v-if="removingBg" class="flex items-center justify-center gap-2">
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Удаление фона...
+            </span>
+            <span v-else class="flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              Удалить фон
+            </span>
+          </button>
+        </div>
+
+        <div v-if="editorStore.currentImage?.cutoutUrl" class="sidebar-section">
+          <label class="sidebar-label">Шаг 2: AI-фон</label>
+          <input
+            v-model="prompt"
+            type="text"
+            placeholder="Скандинавская гостиная, мягкий свет..."
+            class="input text-sm mb-2"
+          />
+          <div class="flex flex-wrap gap-1.5 mb-3">
             <button
-              @click="removeBackground"
-              :disabled="removingBg"
-              class="w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-300"
-              :class="removingBg
-                ? 'bg-purple-500/20 text-purple-300 cursor-wait'
-                : 'bg-purple-600 hover:bg-purple-500 text-white hover:shadow-glow'"
+              v-for="style in quickStyles"
+              :key="style"
+              @click="prompt = style"
+              class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+              :class="prompt === style
+                ? 'bg-brand-500 text-white'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'"
             >
-              <span v-if="removingBg" class="flex items-center justify-center gap-2">
-                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Удаление фона...
-              </span>
-              <span v-else class="flex items-center justify-center gap-2">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Удалить фон (RMBG)
-              </span>
+              {{ style.split(',')[0] }}
             </button>
           </div>
+          <button
+            @click="generateScene"
+            :disabled="generating"
+            class="w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
+            :class="generating
+              ? 'bg-indigo-500/15 text-indigo-300 cursor-wait'
+              : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:shadow-glow'"
+          >
+            <span v-if="generating" class="flex items-center justify-center gap-2">
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Генерация фона...
+            </span>
+            <span v-else>Сгенерировать фон</span>
+          </button>
+        </div>
 
-          <!-- Step 2: Generate BG -->
-          <div v-if="editorStore.currentImage?.cutoutUrl">
-            <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Шаг 2: AI-фон</label>
-            <input
-              v-model="prompt"
-              type="text"
-              placeholder="Скандинавская гостиная, мягкий свет..."
-              class="input text-sm mb-2"
-            />
-            <div class="flex flex-wrap gap-1.5 mb-3">
-              <button
-                v-for="style in quickStyles"
-                :key="style"
-                @click="prompt = style"
-                class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200"
-                :class="prompt === style
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'"
-              >
-                {{ style.split(',')[0] }}
-              </button>
-            </div>
+        <div v-if="editorStore.currentImage?.cutoutUrl && editorStore.currentImage?.backgroundUrl" class="sidebar-section">
+          <label class="sidebar-label">Шаг 3: Размер</label>
+          <div class="grid grid-cols-2 gap-1.5">
             <button
-              @click="generateScene"
-              :disabled="generating"
-              class="w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-300"
-              :class="generating
-                ? 'bg-indigo-500/20 text-indigo-300 cursor-wait'
-                : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:shadow-glow'"
+              v-for="(preset, key) in RESIZE_PRESETS"
+              :key="key"
+              @click="applyPreset(String(key))"
+              class="px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 cursor-pointer"
+              :class="selectedPreset === key
+                ? 'bg-brand-500 text-white shadow-glow'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'"
             >
-              <span v-if="generating" class="flex items-center justify-center gap-2">
-                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Генерация фона...
-              </span>
-              <span v-else>Сгенерировать фон</span>
-            </button>
-          </div>
-
-          <!-- Step 3: Size presets -->
-          <div v-if="editorStore.currentImage?.cutoutUrl && editorStore.currentImage?.backgroundUrl">
-            <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Шаг 3: Размер</label>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                v-for="(preset, key) in RESIZE_PRESETS"
-                :key="key"
-                @click="applyPreset(String(key))"
-                class="px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200"
-                :class="selectedPreset === key
-                  ? 'bg-brand-500 text-white shadow-glow'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'"
-              >
-                {{ preset.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Compose button -->
-          <div v-if="editorStore.currentImage?.cutoutUrl && editorStore.currentImage?.backgroundUrl">
-            <button
-              @click="composeImage"
-              :disabled="composing"
-              class="w-full py-2.5 rounded-xl text-sm font-medium bg-green-600 hover:bg-green-500 text-white transition-all duration-300 hover:shadow-glow"
-            >
-              <span v-if="composing" class="flex items-center justify-center gap-2">
-                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Загрузка...
-              </span>
-              <span v-else>Загрузить в редактор</span>
+              {{ preset.label }}
             </button>
           </div>
         </div>
 
+        <div v-if="editorStore.currentImage?.cutoutUrl && editorStore.currentImage?.backgroundUrl" class="sidebar-section">
+          <button
+            @click="composeImage"
+            :disabled="composing"
+            class="w-full py-2.5 rounded-xl text-sm font-medium bg-green-600 hover:bg-green-500 text-white transition-all duration-200 cursor-pointer hover:shadow-glow"
+          >
+            <span v-if="composing" class="flex items-center justify-center gap-2">
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Загрузка...
+            </span>
+            <span v-else>Загрузить в редактор</span>
+          </button>
+        </div>
+
         <!-- Text overlay -->
-        <div class="card p-4">
-          <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Текст</label>
+        <div class="sidebar-section">
+          <label class="sidebar-label">Текст</label>
           <input
             v-model="overlayText"
             type="text"
             placeholder="Хит продаж!"
             class="input text-sm mb-2"
           />
-          <div class="flex gap-2 mb-2">
+          <div class="flex gap-2">
             <input
               v-model="textColor"
               type="color"
-              class="w-10 h-10 rounded-lg border-0 cursor-pointer bg-transparent"
+              class="w-9 h-9 rounded-lg border-0 cursor-pointer bg-transparent shrink-0"
             />
             <input
               v-model.number="textFontSize"
@@ -201,11 +195,11 @@
               min="12"
               max="200"
               placeholder="36"
-              class="input text-sm w-20"
+              class="input text-sm w-16"
             />
             <button
               @click="addTextOverlay"
-              class="flex-1 py-2 rounded-xl text-sm font-medium bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+              class="flex-1 py-2 rounded-lg text-sm font-medium bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200 cursor-pointer"
             >
               Добавить
             </button>
@@ -213,25 +207,25 @@
         </div>
 
         <!-- Crop tool -->
-        <div v-if="editorStore.currentImage && !crop.isCropping.value" class="card p-4">
-          <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Кадрирование</label>
+        <div v-if="editorStore.currentImage && !crop.isCropping.value" class="sidebar-section">
+          <label class="sidebar-label">Кадрирование</label>
           <button
             @click="crop.startCrop()"
-            class="w-full py-2 rounded-xl text-sm font-medium bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-all"
+            class="w-full py-2 rounded-lg text-sm font-medium bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all duration-200 cursor-pointer"
           >
-            <svg class="w-4 h-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg class="w-4 h-4 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             Кадрировать
           </button>
         </div>
 
         <!-- Object actions -->
-        <div v-if="canvas.activeObject.value" class="card p-4">
-          <label class="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">Объект</label>
+        <div v-if="canvas.activeObject.value" class="sidebar-section">
+          <label class="sidebar-label">Объект</label>
           <button
             @click="deleteSelected"
-            class="w-full py-2 rounded-xl text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"
+            class="w-full py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/15 transition-all duration-200 cursor-pointer"
           >
             Удалить объект
           </button>
@@ -278,13 +272,13 @@
       </div>
 
       <!-- Export -->
-      <div class="sidebar-footer sidebar-border-t">
+      <div class="sidebar-footer">
         <button
           @click="exportImage"
-          class="btn-primary w-full py-3"
+          class="btn-primary w-full py-2.5 cursor-pointer"
         >
-          <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
           Экспортировать PNG
         </button>
@@ -301,24 +295,36 @@
 
     <!-- Canvas area -->
     <main class="editor-canvas-area">
-      <!-- Empty state -->
-      <div
-        v-if="!editorStore.currentImage"
-        class="text-center animate-fade-in absolute z-10"
-      >
-        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-brand-500/20 to-accent-cyan/20 flex items-center justify-center">
-          <svg class="w-10 h-10 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <h3 class="text-lg font-semibold text-gray-400 mb-2">Загрузите фото для начала работы</h3>
-        <p class="text-sm text-gray-500">Поддерживаются форматы PNG, JPG до 20MB</p>
-      </div>
+      <!-- Checkerboard background for transparency -->
+      <div class="absolute inset-0 opacity-[0.02]" style="background-image: repeating-conic-gradient(#fff 0% 25%, transparent 0% 50%); background-size: 20px 20px;"></div>
 
-      <!-- Canvas wrapper - always rendered -->
-      <div
-        class="canvas-wrapper"
+      <!-- Empty state -->
+      <Transition
+        enter-active-class="transition-opacity duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
       >
+        <div
+          v-if="!editorStore.currentImage"
+          class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+        >
+          <div class="text-center pointer-events-auto">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-brand-500/15 to-accent-cyan/15 flex items-center justify-center ring-1 ring-white/5">
+              <svg class="w-10 h-10 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 001.5-1.5V5.25a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v14.25a1.5 1.5 0 001.5 1.5z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-400 mb-2">Загрузите фото для начала работы</h3>
+            <p class="text-sm text-gray-600">Поддерживаются форматы PNG, JPG до 20MB</p>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Canvas wrapper -->
+      <div class="canvas-wrapper">
         <canvas
           ref="canvasRef"
           id="main-canvas"
@@ -620,19 +626,14 @@ function handleDeleteLayer(layerId: string): void {
 <style scoped>
 .editor-layout {
   display: flex;
-  height: calc(100vh - 3.5rem - 3.5rem);
+  height: 100%;
   overflow: hidden;
 }
 
-@media (min-width: 1024px) {
-  .editor-layout {
-    height: calc(100vh - 4rem - 4rem);
-  }
-}
-
 .editor-sidebar {
-  width: 20rem;
+  width: 18rem;
   background: var(--bg-secondary);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -641,25 +642,53 @@ function handleDeleteLayer(layerId: string): void {
 
 @media (min-width: 1280px) {
   .editor-sidebar {
-    width: 24rem;
+    width: 20rem;
   }
 }
 
 .sidebar-header {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+.sidebar-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
 }
 
 .sidebar-footer {
-  padding: 1rem;
+  padding: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-section {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sidebar-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
 }
 
 .editor-canvas-area {
@@ -669,7 +698,7 @@ function handleDeleteLayer(layerId: string): void {
   justify-content: center;
   background: var(--bg-primary);
   overflow: hidden;
-  padding: 1.5rem;
+  padding: 2rem;
   position: relative;
 }
 
@@ -679,13 +708,22 @@ function handleDeleteLayer(layerId: string): void {
   justify-content: center;
   max-width: 100%;
   max-height: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .canvas-wrapper canvas {
   max-width: 100%;
-  max-height: calc(100vh - 8rem);
+  max-height: calc(100vh - 10rem);
   object-fit: contain;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.canvas-shadow {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 8px 40px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .upload-zone:hover .upload-icon {

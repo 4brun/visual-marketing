@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="min-h-screen flex items-center justify-center px-4 py-12 mesh-gradient">
     <div class="w-full max-w-md animate-fade-in">
       <div class="text-center mb-8">
         <NuxtLink to="/" class="inline-flex items-center gap-2 mb-6">
@@ -14,19 +14,19 @@
         <p class="text-gray-400">Начните создавать профессиональные фото</p>
       </div>
 
-      <div class="card p-8">
+      <div class="p-8 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
         <form @submit.prevent="handleRegister" class="space-y-5">
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Имя</label>
-            <input v-model="form.name" type="text" placeholder="Ваше имя" class="input" />
+            <label for="register-name" class="block text-sm font-medium text-gray-300 mb-2">Имя</label>
+            <input id="register-name" v-model="form.name" type="text" placeholder="Ваше имя" class="input focus:ring-2 focus:ring-brand-500/20" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
-            <input v-model="form.email" type="email" required placeholder="you@example.com" class="input" />
+            <label for="register-email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <input id="register-email" v-model="form.email" type="email" required placeholder="you@example.com" class="input focus:ring-2 focus:ring-brand-500/20" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Пароль</label>
-            <input v-model="form.password" type="password" required minlength="6" placeholder="Минимум 6 символов" class="input" />
+            <label for="register-password" class="block text-sm font-medium text-gray-300 mb-2">Пароль</label>
+            <input id="register-password" v-model="form.password" type="password" required minlength="6" placeholder="Минимум 6 символов" class="input focus:ring-2 focus:ring-brand-500/20" />
           </div>
 
           <div class="flex items-start gap-3 p-3 rounded-xl bg-brand-500/5 border border-brand-500/10">
